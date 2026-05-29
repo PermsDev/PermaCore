@@ -1,0 +1,159 @@
+{
+    "1030428036773990400": {
+        "1013464813940244560": {
+            "nickname": "Aan",
+            "joined_at": "2022-10-14T10:33:08.407000+00:00",
+            "games": {
+                "growtopia": {
+                    "value": "Permanen",
+                    "message_id": 1504491447355703456,
+                    "channel_id": 1500862344782417980
+                },
+                "pw": {
+                    "value": "perma",
+                    "message_id": 1504491447825469460,
+                    "channel_id": 1500862537732853770
+                },
+                "mlbb": {
+                    "value": "179083789",
+                    "message_id": 1504491795558432818,
+                    "channel_id": 1500862610151571637
+                },
+                "roblox": {
+                    "value": "PermsDev",
+                    "message_id": 1504491447506829322,
+                    "channel_id": 1500862690329890916
+                }
+            }
+        },
+        "1461188207310798900": {
+            "nickname": "zoey",
+            "joined_at": "2026-01-26T03:17:46.124000+00:00",
+            "games": {
+                "roblox": {
+                    "value": "shirowwly",
+                    "message_id": 1505232601646891020,
+                    "channel_id": 1500862690329890916
+                }
+            }
+        },
+        "705773838385807360": {
+            "nickname": "Ei",
+            "joined_at": "2022-10-29T12:54:30.555000+00:00",
+            "games": {
+                "growtopia": {
+                    "value": "KAAXY",
+                    "message_id": 1505244720593506304,
+                    "channel_id": 1500862344782417980
+                }
+            }
+        },
+        "1031208466490064997": {
+            "nickname": "Rene",
+            "joined_at": "2026-03-23T06:11:02.311000+00:00",
+            "games": {
+                "growtopia": {
+                    "value": "Renege",
+                    "message_id": 1505392545629212834,
+                    "channel_id": 1500862344782417980
+                }
+            }
+        },
+        "756492835284451398": {
+            "nickname": "barto",
+            "joined_at": "2025-07-05T12:35:08.094000+00:00",
+            "games": {
+                "growtopia": {
+                    "value": "Arsyis",
+                    "message_id": 1506677167961145364,
+                    "channel_id": 1500862344782417980
+                },
+                "mlbb": {
+                    "value": "1078354087",
+                    "message_id": 1505393962221834444,
+                    "channel_id": 1500862610151571637
+                }
+            }
+        },
+        "1213017456080199711": {
+            "nickname": "aditya",
+            "joined_at": "2026-04-04T06:01:43.508000+00:00",
+            "games": {
+                "growtopia": {
+                    "value": "TYA4",
+                    "message_id": 1505553631095558324,
+                    "channel_id": 1500862344782417980
+                }
+            }
+        },
+        "1419881216454168658": {
+            "nickname": "Dexi",
+            "joined_at": "2026-03-29T06:50:57.399000+00:00",
+            "games": {
+                "growtopia": {
+                    "value": "Dexxiii",
+                    "message_id": 1505553703762137108,
+                    "channel_id": 1500862344782417980
+                },
+                "pw": {
+                    "value": "Dexii",
+                    "message_id": 1505553705598976181,
+                    "channel_id": 1500862537732853770
+                },
+                "roblox": {
+                    "value": "Dexi_0712",
+                    "message_id": 1505553705599107203,
+                    "channel_id": 1500862690329890916
+                }
+            }
+        },
+        "1229612424403877991": {
+            "nickname": "Heer",
+            "joined_at": "2026-03-23T15:32:27.918000+00:00",
+            "games": {
+                "growtopia": {
+                    "value": "Serrei",
+                    "message_id": 1506070933008289843,
+                    "channel_id": 1500862344782417980
+                },
+                "pw": {
+                    "value": "Bayamaru",
+                    "message_id": 1506070939517980702,
+                    "channel_id": 1500862537732853770
+                },
+                "roblox": {
+                    "value": "Bayamaru",
+                    "message_id": 1506070933511602330,
+                    "channel_id": 1500862690329890916
+                }
+            }
+        },
+        "524241403333705749": {
+            "nickname": "Feal",
+            "joined_at": "2026-04-18T13:22:41.019000+00:00",
+            "games": {
+                "growtopia": {
+                    "value": "INFEAL",
+                    "message_id": 1506309683097632951,
+                    "channel_id": 1500862344782417980
+                }
+            }
+        },
+        "1076690554349420564": {
+            "nickname": "Den",
+            "joined_at": "2026-04-07T12:20:16.641000+00:00",
+            "games": {
+                "growtopia": {
+                    "value": "Denchaa",
+                    "message_id": 1506310840490528798,
+                    "channel_id": 1500862344782417980
+                },
+                "mlbb": {
+                    "value": "667060099",
+                    "message_id": 1506310841362944102,
+                    "channel_id": 1500862610151571637
+                }
+            }
+        }
+    }
+}

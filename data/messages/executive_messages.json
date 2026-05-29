@@ -1,0 +1,131 @@
+{
+    "guild": {
+        "tugas": {
+            "title": "<a:crowns2:1507955877116903516>  Tugas Executive:",
+            "description": [
+                "Berikut adalah beberapa tugas yang harus dilakukan oleh setiap executive guild:\n",
+                "<a:bluearrow:1507947266718171186> Mencari member baru",
+                "<a:bluearrow:1507947266718171186> Memantau aktivitas member di dalam guild",
+                "<a:bluearrow:1507947266718171186> Menjaga World ***\"PermaClash\"*** saat Event",
+                "<a:bluearrow:1507947266718171186> Meramaikan saat giveaway berlangsung",
+                "<a:bluearrow:1507947266718171186> Meramaikan Server Discord ***\"Perma Community\"***"
+            ]
+        },
+        "aturan": {
+            "title": "<:gtScroll:1507973278168514661>  Rules:",
+            "description": [
+                "Setiap executive guild wajib mematuhi aturan yang berlaku di dalam guild dan server discord ***\"Perma Community\"***.",
+                "\nberikut adalah beberapa aturan yang harus dipatuhi oleh setiap executive guild:\n",
+                "<a:bluearrow:1507947266718171186> Online Setiap Hari",
+                "<a:bluearrow:1507947266718171186> Bukan Scammer",
+                "<a:bluearrow:1507947266718171186> Mengaktifkan Lokasi Guild",
+                "<a:bluearrow:1507947266718171186> Mengaktifkan Message (msg) Publik",
+                "<a:bluearrow:1507947266718171186> Telah bergabung guild selama 1 bulan",
+                "<a:bluearrow:1507947266718171186> Telah bergabung di Server Discord"
+            ]
+        },
+
+        "hak_akses": {
+            "title": "<a:checklist:1508081459087282237>  Hak & Akses Guild",
+            "description": "Executive Guild memiliki hak akses untuk dapat membantu dalam pengelolaan guild.\nBerikut adalah beberapa hak akses yang dimiliki oleh executive guild:\n",
+            "add_field": [
+                {
+                    "name": "<:growtopia:1501506623007494184>  In Games Access",
+                    "value": [
+                        "<a:bluearrow:1507947266718171186> Akses di World ***\"PermaClash\"***",
+                        "<a:bluearrow:1507947266718171186> Memiliki Hak untuk dapat melakukan invite member guild",
+                        "<a:bluearrow:1507947266718171186> Memiliki Hak untuk dapat melakukan kick member guild bagi member yang tidak aktif atau melanggar aturan guild"
+                    ]
+                },
+                {
+                    "name": "\n<:discord:1508027536171339876>  Discord Access",
+                    "value": [
+                        "<a:bluearrow:1507947266718171186> Role khusus executive",
+                        "<a:bluearrow:1507947266718171186> Memiliki Akses di channel:",
+                        "1. <#1416970382665187479>",
+                        "Tempat untuk mengungumkan informasi penting seputar guild, seperti pengumuman event, pengumuman pemenang giveaway, dan informasi penting lainnya seputar guild.",
+                        "2. <#1476313516611997817>",
+                        "Tempat diskusi antar sesama seluruh executive yang ada di server discord"
+                    ]
+                }
+            ]
+        },
+
+        "benefit": {
+            "title": "<a:bgl:1508083038079287397>  Benefit Guild",
+            "description": [
+                "Untuk mengapresiasi kerja keras para executive guild, kami memberikan beberapa benefit yang bisa didapatkan oleh setiap executive guild,\n",
+                "berikut adalah beberapa benefit yang bisa didapatkan oleh setiap executive guild:\n",
+                "<a:bluearrow:1507947266718171186> Mendapatkan Role Khusus Executive",
+                "<a:bluearrow:1507947266718171186> Free Surg E yang ada di world ***\"PermaClash\"***",
+                "<a:bluearrow:1507947266718171186> Mendapatkan Hak untuk mengambil Executive Salary. *(Masih Tahap pertimbangan)*"
+            ]
+        },
+
+        "jenjang": {
+            "title": "<a:hype:1508082953740095518>  Promotion Guide Guild",
+            "description": [
+                "Executive guild adalah salah satu cara untuk dapat mempromosikan diri menjadi Co-Leader di dalam guild. Berikut adalah cara mendapatkan promosi untuk menjadi Co-Leader di dalam guild:\n",
+                "<a:bluearrow:1507947266718171186> Menjadi Executive Guild selama minimal 3 bulan",
+                "<a:bluearrow:1507947266718171186> Sangat aktif di dalam guild dan server discord ***\"Perma Community\"***",
+                "<a:bluearrow:1507947266718171186> Memiliki kontribusi terbesar dalam menjalankan tugas-tugas executive guild",
+                "<a:bluearrow:1507947266718171186> Untuk Menghidari Konflik Internal, Promosi Menjadi Co-Leader akan diputuskan oleh Leader dan Co-Leader.",
+                "<a:bluearrow:1507947266718171186> Executive Guild yang ingin dipromosikan menjadi Co-Leader wajib mengidentifikasi dirinya hanya kepada Leader. Hal ini dilakukan untuk menghindari tindakan scam atau penipuan oleh oknum tidak bertanggung jawab yang mengatasnamakan petinggi guild."
+            ]
+        }
+    },
+
+    "clan": {
+        "tugas": {
+            "title": "<a:crowns2:1507955877116903516>  Tugas Executive Clan",
+            "description": ""
+        },
+
+        "aturan": {
+            "title": "<:gtScroll:1507973278168514661>  Aturan Executive Clan",
+            "description": ""
+        },
+
+        "hak_akses": {
+            "title": "<a:checklist:1508081459087282237>  Hak & Akses Clan",
+            "description": ""
+        },
+
+        "benefit": {
+            "title": "<:bytecoin:1508106694629265620>  Benefit Clan",
+            "description": ""
+        },
+
+        "jenjang": {
+            "title": "<a:hype:1508082953740095518>  Promotion Guide Clan",
+            "description": ""
+        }
+    },
+
+    "sinyalid": {
+        "tugas": {
+            "title": "<a:crowns2:1507955877116903516>  Tugas Executive SinyalID",
+            "description": ""
+        },
+
+        "aturan": {
+            "title": "<:gtScroll:1507973278168514661>  Aturan Executive SinyalID",
+            "description": ""
+        },
+
+        "hak_akses": {
+            "title": "<a:checklist:1508081459087282237>  Hak & Akses SinyalID",
+            "description": ""
+        },
+
+        "benefit": {
+            "title": "<a:bgl:1508083038079287397>  Benefit SinyalID",
+            "description": ""
+        },
+
+        "jenjang": {
+            "title": "<a:hype:1508082953740095518>  Promotion Guide SinyalID",
+            "description": ""
+        }
+    }
+}

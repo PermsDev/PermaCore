@@ -1,0 +1,72 @@
+Finish:
+- Introduction (update semua card jika nama yang di ubah)
+- FeedBack
+- event welcome
+- event goodbye
+- event change Roles
+- utils verified
+
+- Bot Logs (Setup, Claim Prize, Claim Spesial Roles)
+
+Progress
+- Add Executive (
+    - isi data pada executive_messages (clan dan sinyalid)
+)
+
+- Top Clash (
+    - buat command "/Top Clash"
+    - memiliki option 5 pemenang
+    - admin dapat mengetik namanya tanpa tag, bot akan melakukan pencocokan data pada file intro_data.json
+    - jika tidak ada data pada intro, Bot hanya mengetik namanya.
+    - jika ada data pada intro, bot akan melakukan tag dan mengirim DM secara langsung
+    - Bot akan mengarahkan user ke channel claim prize
+)
+
+- Claim Prize (
+    - Setup Channel untuk claim prize mereka
+    - Prize terdiri dari: Giveaway, Event, Clash Growtopia, other
+    - pesan akan terkirim ke channel khusus.
+)
+
+- Claim Spesial Roles (
+    - Setup Channel untuk Claim Spesial Roles
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SYARAT & TUGAS EXECUTIVE  GUILD <:PandaLove:1083102474308689951> 
+
+<:rules:1081606926124724314>  Rules:
+      <a:redArrow:1482460353064337478> Online Setiap Hari
+      <a:redArrow:1482460353064337478> Bukan Scammer
+      <a:redArrow:1482460353064337478> Telah bergabung guild selama 1 bulan
+      <a:redArrow:1482460353064337478> Telah bergabung di Server Discord
+
+<a:hide:1478694598095274128>   Tugas Executive:
+      <a:redArrow:1482460353064337478> Mencari member baru
+      <a:redArrow:1482460353064337478> Menjaga World *"PermaClash"* saat Event
+      <a:redArrow:1482460353064337478> Meramaikan saat giveaway berlangsung
+
+<a:shinybgl:1089026268072247338>   Keuntungan Executive:
+      <a:redArrow:1482460353064337478> Memiliki kesempatan untuk menjadi (GC)
+      <a:redArrow:1482460353064337478> Access di World *"PermaClash"*
+      <a:redArrow:1482460353064337478> Free Surg-e <:surge:1430811897493721178> di hari apapun
