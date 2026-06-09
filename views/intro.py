@@ -15,6 +15,10 @@ from utils.json_manager import (
     update_json
 )
 
+from utils.validate import(
+    validate_growid, validate_pw, validate_roblox, validate_mlbb
+)
+
 load_dotenv()
 # role special
 EXECUTIVE_GUILD_ROLE_ID = int(os.getenv("EXECUTIVE_GUILD_ROLE_ID", 0))
@@ -168,20 +172,40 @@ class IntroModal(discord.ui.Modal):
 
     async def on_submit(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
-
-        # ======================
-        # VALIDASI MLBB
-        # ======================
-        mlbb_value = self.mlbb.value.strip()
-
-        mlbb_valid = (
-            not mlbb_value or mlbb_value.isdigit()
-        )
-
+        
         data = await load_json(INTRO_DATA_PATH)
 
+        
         guild_id = str(interaction.guild.id)
         user_id = str(interaction.user.id)
+        
+        # ======================
+        # DATA LAMA
+        # ======================
+        old_user_data = (
+            data
+            .get(guild_id, {})
+            .get(user_id, {})
+        )
+        # ======================
+        # VALIDASI GAME
+        # ======================
+        
+        growtopia_valid, growtopia_error = validate_growid(
+            self.growtopia.value.strip()
+        )
+        
+        pw_valid, pw_error = validate_pw(
+            self.pw.value.strip()
+        )
+        
+        roblox_valid, roblox_error = validate_roblox(
+            self.roblox.value.strip()
+        )
+        
+        mlbb_valid, mlbb_error = validate_mlbb(
+            self.mlbb.value.strip()
+        )
 
         # ======================
         # RENAME USER
@@ -191,47 +215,90 @@ class IntroModal(discord.ui.Modal):
         try:
 
             member_roles = [role.id for role in interaction.user.roles]
+
             blocked_rename = any(
                 role_id in NO_RENAME_ROLES
                 for role_id in member_roles
             )
 
-            new_nick = self.nickname.value
+            old_games = old_user_data.get(
+                "games",
+                {}
+            )
+
+            # ======================
+            # EFFECTIVE VALUE
+            # ======================
+            effective_gt = (
+                self.growtopia.value.strip()
+                if (
+                    growtopia_valid
+                    and self.growtopia.value.strip()
+                )
+                else old_games.get(
+                    "growtopia",
+                    {}
+                ).get(
+                    "value",
+                    ""
+                )
+            )
+
+            effective_pw = (
+                self.pw.value.strip()
+                if (
+                    pw_valid
+                    and self.pw.value.strip()
+                )
+                else old_games.get(
+                    "pw",
+                    {}
+                ).get(
+                    "value",
+                    ""
+                )
+            )
+
+            new_nick = self.nickname.value.strip()
 
             # ======================
             # PRIORITAS ROLE GT
             # ======================
-            if EXECUTIVE_GUILD_ROLE_ID in member_roles:
-
-                gt_name = self.growtopia.value.strip()
-
-                if gt_name:
-                    new_nick = f"{gt_name} ❄️"
+            if (
+                EXECUTIVE_GUILD_ROLE_ID
+                in member_roles
+                and effective_gt
+            ):
+                new_nick = (
+                    f"{effective_gt} ❄️"
+                )
 
             # ======================
             # ROLE PIXEL WORLD
             # ======================
-            elif EXECUTIVE_CLAN_ROLE_ID in member_roles:
-
-                pw_name = self.pw.value.strip()
-
-                if pw_name:
-                    new_nick = f"{pw_name} 🔆"
+            elif (
+                EXECUTIVE_CLAN_ROLE_ID
+                in member_roles
+                and effective_pw
+            ):
+                new_nick = (
+                    f"{effective_pw} 🔆"
+                )
 
             # ======================
             # APPLY NICKNAME
             # ======================
             if not blocked_rename:
-                await interaction.user.edit(nick=new_nick)
+                await interaction.user.edit(
+                    nick=new_nick
+                )
 
         except discord.Forbidden:
             rename_success = False
-
+            
         # ======================
         # DATA LAMA
         # ======================
-        old_user_data = data.get(guild_id, {}).get(user_id, {})
-        
         old_nickname = old_user_data.get("nickname", "").strip()
         new_nickname = self.nickname.value.strip()
 
@@ -241,10 +308,10 @@ class IntroModal(discord.ui.Modal):
         # GAME FIELD
         # ======================
         game_fields = {
-            "growtopia": self.growtopia.value,
-            "pw": self.pw.value,
-            "mlbb": mlbb_value,
-            "roblox": self.roblox.value
+            "growtopia": self.growtopia.value.strip(),
+            "pw": self.pw.value.strip(),
+            "mlbb": self.mlbb.value.strip(),
+            "roblox": self.roblox.value.strip()
         }
         
         # ======================
@@ -258,6 +325,7 @@ class IntroModal(discord.ui.Modal):
         pending_games = []
 
         successful_games = []
+        input_warnings = []
         failed_games = []
         removed_games = []
         save_success = False
@@ -276,10 +344,43 @@ class IntroModal(discord.ui.Modal):
             old_value = old_game_data.get("value", "").strip()
             new_value = game_value.strip()
             
+            if game_key == "growtopia" and not growtopia_valid:
+                input_warnings.append({
+                    "game": "growtopia",
+                    "error": growtopia_error
+                })
+
+                if nickname_changed and old_value:
+                    new_value = old_value
+                else:
+                    continue
+
+            if game_key == "pw" and not pw_valid:
+                input_warnings.append({
+                    "game": "pw",
+                    "error": pw_error
+                })
+                if nickname_changed and old_value:
+                    new_value = old_value
+                else:
+                    continue
+
+            if game_key == "roblox" and not roblox_valid:
+                
+                input_warnings.append({
+                    "game": "roblox",
+                    "error": roblox_error
+                })
+                
+                if nickname_changed and old_value:
+                    new_value = old_value
+                else:
+                    continue
+            
             if game_key == "mlbb" and not mlbb_valid:
-                failed_games.append({
+                input_warnings.append({
                     "game": "mlbb",
-                    "error": "MLBB ID harus angka"
+                    "error": mlbb_error
                 })
                 # ADD LOG WARNING
                 await send_log(
@@ -290,11 +391,13 @@ class IntroModal(discord.ui.Modal):
                     user=interaction.user,
                     details={
                         "Game": "Mobile Legends",
-                        "Error": "MLBB ID harus berupa angka"
+                        "Error": mlbb_error
                     }
                 )
-
-                continue
+                if nickname_changed and old_value:
+                    new_value = old_value
+                else:
+                    continue
 
             # skip kalau tidak berubah
             if old_value == new_value and not nickname_changed:
@@ -313,21 +416,46 @@ class IntroModal(discord.ui.Modal):
             old_message_id = old_game_data.get("message_id")
 
             # ======================
-            # HAPUS MESSAGE LAMA
-            # ======================
-            if old_message_id:
-                try:
-                    old_msg = await channel.fetch_message(old_message_id)
-                    await old_msg.delete()
-                except (discord.NotFound, discord.Forbidden):
-                    pass
-
-            # ======================
             # FIELD DIKOSONGKAN
             # ======================
             if not new_value:
+
                 if old_value:
+
                     removed_games.append(game_key)
+
+                    old_message_id = old_game_data.get("message_id")
+
+                    if old_message_id:
+
+                        try:
+
+                            old_msg = await channel.fetch_message(
+                                old_message_id
+                            )
+
+                            await old_msg.delete()
+
+                        except discord.NotFound:
+                            pass
+
+                        except discord.Forbidden:
+                            pass
+
+                        except Exception as e:
+
+                            await send_log(
+                                guild=interaction.guild,
+                                log_type="WARNING",
+                                action="Delete Introduction",
+                                emoji="⚠️",
+                                user=interaction.user,
+                                details={
+                                    "Game": game_key,
+                                    "Message ID": old_message_id,
+                                    "Error": str(e)
+                                }
+                            )
                 continue
 
             # ======================
@@ -363,7 +491,8 @@ class IntroModal(discord.ui.Modal):
             pending_games.append({
                 "game_key": game_key,
                 "value": new_value,
-                "channel_id": channel.id
+                "channel_id": channel.id,
+                "old_message_id": old_message_id
             })
 
         # ======================
@@ -416,11 +545,71 @@ class IntroModal(discord.ui.Modal):
                 "message_id": message.id,
                 "channel_id": game_data["channel_id"]
             }
+
+            # ======================
+            # DELETE OLD MESSAGE
+            # ======================
+            old_message_id = game_data.get("old_message_id")
+
+            if old_message_id:
+
+                try:
+
+                    channel = interaction.guild.get_channel(
+                        game_data["channel_id"]
+                    )
+
+                    if channel:
+
+                        old_msg = await channel.fetch_message(
+                            old_message_id
+                        )
+
+                        await old_msg.delete()
+
+                except discord.NotFound:
+                    pass
+
+                except discord.Forbidden:
+
+                    await send_log(
+                        guild=interaction.guild,
+                        log_type="WARNING",
+                        action="Delete Old Introduction",
+                        emoji="⚠️",
+                        user=interaction.user,
+                        details={
+                            "Game": game_key,
+                            "Message ID": old_message_id,
+                            "Reason": "Missing permissions"
+                        }
+                    )
+
+                except Exception as e:
+
+                    await send_log(
+                        guild=interaction.guild,
+                        log_type="WARNING",
+                        action="Delete Old Introduction",
+                        emoji="⚠️",
+                        user=interaction.user,
+                        details={
+                            "Game": game_key,
+                            "Message ID": old_message_id,
+                            "Error": str(e)
+                        }
+                    )
             
         # ======================
         # SAVE DATA
         # ======================
         def updater(data):
+            validation_status = {
+                "growtopia": growtopia_valid,
+                "pw": pw_valid,
+                "mlbb": mlbb_valid,
+                "roblox": roblox_valid
+            }
 
             if guild_id not in data:
                 data[guild_id] = {}
@@ -431,8 +620,8 @@ class IntroModal(discord.ui.Modal):
 
                 clean_value = game_value.strip()
 
-                # skip mlbb invalid
-                if game_key == "mlbb" and not mlbb_valid:
+                if not validation_status[game_key]:
+
                     old_game = (
                         data
                         .get(guild_id, {})
@@ -498,22 +687,31 @@ class IntroModal(discord.ui.Modal):
         response_text = ""
         nickname_info = ""
 
-        if EXECUTIVE_GUILD_ROLE_ID in member_roles and self.growtopia.value.strip():
+        # ======================
+        # NICKNAME INFO
+        # ======================
+        if (
+            EXECUTIVE_GUILD_ROLE_ID in member_roles
+            and effective_gt
+        ):
             nickname_info = (
                 f"\n❄️ Nickname disesuaikan menjadi "
-                f"`{self.growtopia.value.strip()} ❄️`"
+                f"`{effective_gt} ❄️`"
             )
 
-        elif EXECUTIVE_CLAN_ROLE_ID in member_roles and self.pw.value.strip():
+        elif (
+            EXECUTIVE_CLAN_ROLE_ID in member_roles
+            and effective_pw
+        ):
             nickname_info = (
                 f"\n🔆 Nickname disesuaikan menjadi "
-                f"`{self.pw.value.strip()} 🔆`"
+                f"`{effective_pw} 🔆`"
             )
 
         else:
             nickname_info = (
                 f"\n📝 Nickname diset menjadi "
-                f"`{self.nickname.value}`"
+                f"`{self.nickname.value.strip()}`"
             )
 
         # ======================
@@ -532,17 +730,16 @@ class IntroModal(discord.ui.Modal):
                 "tapi data tetap tersimpan."
             )
 
+        pretty_names = {
+            "growtopia": "Growtopia",
+            "pw": "Pixel World",
+            "mlbb": "Mobile Legends",
+            "roblox": "Roblox"
+        }
         # ======================
         # GAME SUCCESS
         # ======================
         if successful_games:
-
-            pretty_names = {
-                "growtopia": "Growtopia",
-                "pw": "Pixel World",
-                "mlbb": "Mobile Legends",
-                "roblox": "Roblox"
-            }
 
             success_list = [
                 pretty_names.get(game, game)
@@ -559,13 +756,6 @@ class IntroModal(discord.ui.Modal):
         # ======================
         if failed_games:
 
-            pretty_names = {
-                "growtopia": "Growtopia",
-                "pw": "Pixel World",
-                "mlbb": "Mobile Legends",
-                "roblox": "Roblox"
-            }
-
             response_text += "\n\n❌ Profile gagal dibuat:"
 
             for failed in failed_games:
@@ -578,25 +768,41 @@ class IntroModal(discord.ui.Modal):
                 response_text += (
                     f"\n• {game_name} — {failed['error']}"
                 )
-        # print(failed_games)
-        # print(successful_games)
-        # print(removed_games)
+                
+        # ======================
+        # INPUT WARNINGS
+        # ======================
+        if input_warnings:
 
+            response_text += "\n\n⚠️ Input tidak valid, data lama tetap digunakan:"
+
+            for warning in input_warnings:
+
+                game_name = pretty_names.get(
+                    warning["game"],
+                    warning["game"]
+                )
+
+                response_text += (
+                    f"\n• {game_name} — {warning['error']}"
+                )
+            
         # ======================
         # SAVE STATUS
         # ======================
-        if save_success:
-
-            response_text += (
-                "\n\n💾 Data berhasil disimpan."
-            )
-
-        else:
+        if not save_success:
 
             response_text += (
                 "\n\n❌ Data gagal disimpan:"
                 f"\n`{save_error}`"
             )
+            
+        #     response_text += (
+        #         "\n\n💾 Data berhasil disimpan."
+        #     )
+
+        # else:
+
             
         
         # ======================
@@ -672,6 +878,7 @@ class IntroButton(discord.ui.View):
         # from views.intro import IntroModal, load_json
 
         data = await load_json(INTRO_DATA_PATH)
+        
         guild_id = str(interaction.guild.id)
         user_id = str(interaction.user.id)
 
