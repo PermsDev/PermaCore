@@ -5,7 +5,6 @@ from services.card_generator import (
 from utils.logger import send_log
 from dotenv import load_dotenv
 import discord
-# import json
 import os
 import asyncio
 
@@ -19,12 +18,12 @@ from utils.validate import(
     validate_growid, validate_pw, validate_roblox, validate_mlbb
 )
 
+from database.role_manager import (
+    get_roles,
+    get_no_rename_roles
+)
+
 load_dotenv()
-# role special
-EXECUTIVE_GUILD_ROLE_ID = int(os.getenv("EXECUTIVE_GUILD_ROLE_ID", 0))
-EXECUTIVE_CLAN_ROLE_ID = int(os.getenv("EXECUTIVE_CLAN_ROLE_ID", 0))
-VERIFIED_ROLE_ID = int(os.getenv("VERIFIED_ROLE_ID", 0))
-NO_RENAME_ROLES = { 1030431425784188948, 1030432479246553141 }
 
 GAME_CHANNELS = {
     "growtopia": int(os.getenv("GT_CHANNEL", 0)),
@@ -179,6 +178,16 @@ class IntroModal(discord.ui.Modal):
         guild_id = str(interaction.guild.id)
         user_id = str(interaction.user.id)
         
+        roles = get_roles(
+            int(guild_id)
+        )
+        
+        VERIFIED_ROLE_ID = roles.get("VERIFIED_ROLE_ID")
+
+        NO_RENAME_ROLES = get_no_rename_roles(
+            int(guild_id)
+        )
+        
         # ======================
         # DATA LAMA
         # ======================
@@ -260,31 +269,7 @@ class IntroModal(discord.ui.Modal):
             )
 
             new_nick = self.nickname.value.strip()
-
-            # ======================
-            # PRIORITAS ROLE GT
-            # ======================
-            if (
-                EXECUTIVE_GUILD_ROLE_ID
-                in member_roles
-                and effective_gt
-            ):
-                new_nick = (
-                    f"{effective_gt} ❄️"
-                )
-
-            # ======================
-            # ROLE PIXEL WORLD
-            # ======================
-            elif (
-                EXECUTIVE_CLAN_ROLE_ID
-                in member_roles
-                and effective_pw
-            ):
-                new_nick = (
-                    f"{effective_pw} 🔆"
-                )
-
+            
             # ======================
             # APPLY NICKNAME
             # ======================
@@ -686,28 +671,13 @@ class IntroModal(discord.ui.Modal):
         # ======================
         response_text = ""
         nickname_info = ""
-
-        # ======================
-        # NICKNAME INFO
-        # ======================
-        if (
-            EXECUTIVE_GUILD_ROLE_ID in member_roles
-            and effective_gt
-        ):
+        
+        if blocked_rename:
             nickname_info = (
-                f"\n❄️ Nickname disesuaikan menjadi "
-                f"`{effective_gt} ❄️`"
+                "\n🔒 Nickname tidak diubah karena "
+                "memiliki role yang dilindungi."
             )
-
-        elif (
-            EXECUTIVE_CLAN_ROLE_ID in member_roles
-            and effective_pw
-        ):
-            nickname_info = (
-                f"\n🔆 Nickname disesuaikan menjadi "
-                f"`{effective_pw} 🔆`"
-            )
-
+            
         else:
             nickname_info = (
                 f"\n📝 Nickname diset menjadi "
@@ -726,7 +696,7 @@ class IntroModal(discord.ui.Modal):
         else:
             response_text += (
                 "⚠️ Nickname tidak bisa diubah "
-                "(role lebih tinggi), "
+                "(role anda lebih tinggi), "
                 "tapi data tetap tersimpan."
             )
 
@@ -796,14 +766,6 @@ class IntroModal(discord.ui.Modal):
                 "\n\n❌ Data gagal disimpan:"
                 f"\n`{save_error}`"
             )
-            
-        #     response_text += (
-        #         "\n\n💾 Data berhasil disimpan."
-        #     )
-
-        # else:
-
-            
         
         # ======================
         # GIVE VERIFIED ROLE
