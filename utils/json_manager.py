@@ -23,12 +23,6 @@ EXECUTIVE_MESSAGES_PATH = (
     / "executive_messages.json"
 )
 
-DELETE_QUEUE_PATH = (
-    DATA_DIR
-    / "messages"
-    / "delete_queue.json"
-)
-
 # =========================
 # LOAD JSON
 # =========================
