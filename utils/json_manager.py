@@ -29,11 +29,6 @@ DELETE_QUEUE_PATH = (
     / "delete_queue.json"
 )
 
-FEEDBACK_PATH = (
-    DATA_DIR
-    / "feedbacks.json"
-)
-
 # =========================
 # LOAD JSON
 # =========================

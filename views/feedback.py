@@ -2,13 +2,12 @@ import discord
 import asyncio
 
 from datetime import datetime
+from database.feedback_manager import (
+    create_feedback,
+    reply_feedback
+)
 from utils.delete_scheduler import register_delete
 from utils.logger import send_log
-from utils.json_manager import (
-    FEEDBACK_PATH,
-    load_json,
-    save_json
-)
 
 from database.channel_manager import get_channel
 
@@ -122,25 +121,13 @@ class ReplyModal(discord.ui.Modal, title="Balas Feedback"):
             # ======================
             # SAVE DATA
             # ======================
-            feedbacks = await load_json(FEEDBACK_PATH)
-
-            guild_id = str(interaction.guild.id)
-            message_id_str = str(message_id)
-
-            if guild_id in feedbacks:
-
-                if message_id_str in feedbacks[guild_id]:
-
-                    feedbacks[guild_id][message_id_str]["admin"] = {
-                        "admin_id": interaction.user.id,
-                        "admin_name": str(interaction.user),
-                        "reply": self.reply.value,
-                        "replied_at": datetime.now().strftime(
-                            "%Y-%m-%d %H:%M:%S"
-                        )
-                    }
-
-                    await save_json(FEEDBACK_PATH, feedbacks)
+            reply_feedback(
+                message_id=message_id,
+                admin_id=interaction.user.id,
+                admin_name=str(interaction.user),
+                reply=self.reply.value,
+                replied_at=datetime.now()
+            )
 
             # ======================
             # LOG
@@ -382,39 +369,18 @@ class FeedbackModal(discord.ui.Modal, title="Kirim Feedback"):
         # ======================
         # SAVE
         # ======================
-        feedbacks = await load_json(
-            FEEDBACK_PATH
-        )
+        create_feedback(
+            message_id=msg.id,
+            guild_id=interaction.guild.id,
+            channel_id=channel.id,
 
-        guild_id = str(interaction.guild.id)
+            category=self.category,
 
-        if guild_id not in feedbacks:
-            feedbacks[guild_id] = {}
+            user_id=interaction.user.id,
+            username=str(interaction.user),
 
-        feedbacks[guild_id][str(msg.id)] = {
-            "channel_id": channel.id,
-            "category": self.category,
-
-            "user": {
-                "user_id": interaction.user.id,
-                "username": str(interaction.user),
-                "feedback": self.feedback.value,
-                "sent_at": datetime.now().strftime(
-                    "%Y-%m-%d %H:%M:%S"
-                )
-            },
-
-            "admin": {
-                "admin_id": None,
-                "admin_name": None,
-                "reply": None,
-                "replied_at": None
-            }
-        }
-
-        await save_json(
-            FEEDBACK_PATH,
-            feedbacks
+            feedback=self.feedback.value,
+            sent_at=datetime.now()
         )
 
         # ======================

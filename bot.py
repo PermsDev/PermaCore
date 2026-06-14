@@ -2,7 +2,6 @@ import os, discord
 from dotenv import load_dotenv
 from discord.ext import commands
 
-from utils.json_manager import FEEDBACK_PATH, load_json
 from utils.delete_scheduler import delete_checker
 
 from views.intro import IntroButton, register_persistent_views
@@ -10,6 +9,7 @@ from views.feedback import FeedbackButton, ReplyView
 from views.executive_info_view import ExecutiveInfoView
 
 from database.emoji_manager import load_emojis
+from database.feedback_manager import get_pending_feedbacks
 from database.role_manager import (
     get_roles,
     load_roles,
@@ -91,19 +91,15 @@ class MyBot(commands.Bot):
         # ======================
         # RESTORE FEEDBACK BUTTONS
         # ======================
-        feedbacks = await load_json(FEEDBACK_PATH) or {}
-        
-        for guild_id, messages in feedbacks.items():
-            for message_id, feedback_data in messages.items():
-                
-                # skip jika sudah dibalas
-                if feedback_data["admin"]["reply"] is not None:
-                    continue
-                
-                self.add_view(
-                    ReplyView(),
-                    message_id=int(message_id)
-                )
+        pending_feedbacks = get_pending_feedbacks()
+
+        for feedback in pending_feedbacks:
+
+            self.add_view(
+                ReplyView(),
+                message_id=feedback["message_id"]
+            )
+            
         # ======================
         # SYNC SLASH COMMANDS (GUILD-SPECIFIC)
         # ======================
