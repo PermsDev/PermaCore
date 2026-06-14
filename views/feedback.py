@@ -87,7 +87,7 @@ class ReplyModal(discord.ui.Modal, title="Balas Feedback"):
             await register_delete(
                 channel_id=dm_msg.channel.id,
                 message_id=dm_msg.id,
-                delete_after=60
+                delete_after="7d"
             )
 
             # ======================

@@ -187,7 +187,7 @@ class ExecutiveInfoSelect(discord.ui.Select):
             await register_delete(
                 channel_id=msg.channel.id,
                 message_id=msg.id,
-                delete_after=60
+                delete_after="3m"
             )
 
         except discord.NotFound:
@@ -198,7 +198,7 @@ class ExecutiveInfoSelect(discord.ui.Select):
             await register_delete(
                 channel_id=msg.channel.id,
                 message_id=msg.id,
-                delete_after=60
+                delete_after="3m"
             )
 # =========================
 # VIEW
