@@ -1,10 +1,6 @@
 import discord
-
 from datetime import datetime
-from utils.json_manager import (
-    GUILD_SETTINGS_PATH,
-    load_json,
-)
+from database.channel_manager import get_channel
 
 # ======================
 # SEND LOG
@@ -20,18 +16,15 @@ async def send_log(
 
     try:
 
-        data = await load_json(GUILD_SETTINGS_PATH)
-        guild_id = str(guild.id)
-
-        if guild_id not in data:
-            return
-
-        log_channel_id = data[guild_id].get(
-            "log_channel"
+        log_data = get_channel(
+            guild.id,
+            "LOG_CHANNEL"
         )
 
-        if not log_channel_id:
+        if not log_data:
             return
+
+        log_channel_id = log_data["channel_id"]
 
         channel = guild.get_channel(
             log_channel_id
@@ -49,28 +42,42 @@ async def send_log(
             "INFORMATION": discord.Color.blurple(),
             "WARNING": discord.Color.orange()
         }
-        
+
         action_name = {
             "Introduction": "Perkenalan",
             "Member Remove": "Keluar dari Server",
             "Member Join": "Masuk dan Bergabung di Server"
         }
-        
+
         description_map = {
-            "SUCCESS": f"User: <@{user.id}> berhasil saat melakukan **{action}**",
-            "ERROR": f"User: <@{user.id}> gagal saat melakukan **{action}**",
-            "WARNING": f"Peringatan saat user <@{user.id}> melakukan **{action}**",
-            "INFORMATION": f"User <@{user.id}> telah **{action_name.get(action, action)}**"
+            "SUCCESS": (
+                f"User: <@{user.id}> berhasil "
+                f"saat melakukan **{action}**"
+            ),
+            "ERROR": (
+                f"User: <@{user.id}> gagal "
+                f"saat melakukan **{action}**"
+            ),
+            "WARNING": (
+                f"Peringatan saat user "
+                f"<@{user.id}> melakukan **{action}**"
+            ),
+            "INFORMATION": (
+                f"User <@{user.id}> telah "
+                f"**{action_name.get(action, action)}**"
+            )
         }
 
         embed = discord.Embed(
-            title=f"{emoji}  • {log_type} LOGS",
+            title=f"{emoji} • {log_type} LOGS",
             color=color_map.get(
                 log_type,
                 discord.Color.blurple()
             ),
             timestamp=datetime.now(),
-            description=description_map.get(log_type)
+            description=description_map.get(
+                log_type
+            )
         )
 
         # ======================
@@ -81,6 +88,7 @@ async def send_log(
             detail_text = ""
 
             for key, value in details.items():
+
                 detail_text += (
                     f"*{key}:* {value}\n"
                 )
@@ -91,7 +99,11 @@ async def send_log(
                 inline=False
             )
 
-        await channel.send(embed=embed)
+        await channel.send(
+            embed=embed
+        )
 
     except Exception as e:
-        print(f"ERROR LOGGER: {e}")
+        print(
+            f"ERROR LOGGER: {e}"
+        )

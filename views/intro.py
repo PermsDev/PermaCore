@@ -1,36 +1,19 @@
-from services.card_generator import (
-    generate_card,
-    get_avatar
-)
-from utils.logger import send_log
-from dotenv import load_dotenv
 import discord
-import os
 import asyncio
+from services.card_generator import generate_card, get_avatar
 
-from utils.json_manager import (
-    INTRO_DATA_PATH,
-    load_json,
-    update_json
+from utils.logger import send_log
+from utils.validate import validate_growid, validate_pw, validate_roblox, validate_mlbb
+
+from database.role_manager import get_roles, get_no_rename_roles
+from database.channel_manager import get_game_channels
+from database.intro_manager import (
+    get_user_profile,
+    save_intro,
+    delete_intro,
+    save_user_profile,
+    get_copyview_intros
 )
-
-from utils.validate import(
-    validate_growid, validate_pw, validate_roblox, validate_mlbb
-)
-
-from database.role_manager import (
-    get_roles,
-    get_no_rename_roles
-)
-
-load_dotenv()
-
-GAME_CHANNELS = {
-    "growtopia": int(os.getenv("GT_CHANNEL", 0)),
-    "pw": int(os.getenv("PW_CHANNEL", 0)),
-    "mlbb": int(os.getenv("MLBB_CHANNEL", 0)),
-    "roblox": int(os.getenv("ROBLOX_CHANNEL", 0)),
-}
 
 GAME_BACKGROUNDS = {
     "growtopia": "bg_gt.png",
@@ -52,7 +35,6 @@ class CopyButton(discord.ui.Button):
         )
 
     async def callback(self, interaction: discord.Interaction):
-
         parts = self.custom_id.split(":")
 
         if len(parts) != 3:
@@ -64,22 +46,11 @@ class CopyButton(discord.ui.Button):
 
         _, game_key, target_user_id = parts
 
-        data = await load_json(INTRO_DATA_PATH)
+        guild_id = interaction.guild.id
 
-        guild_id = str(interaction.guild.id)
+        user_data = get_user_profile(int(guild_id), int(target_user_id))
 
-        user_data = (
-            data
-            .get(guild_id, {})
-            .get(target_user_id, {})
-        )
-
-        game_data = (
-            user_data
-            .get("games", {})
-            .get(game_key, {})
-        )
-
+        game_data = user_data.get("games", {}).get(game_key, {})
         value = game_data.get("value")
 
         if not value:
@@ -172,30 +143,34 @@ class IntroModal(discord.ui.Modal):
     async def on_submit(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
         
-        data = await load_json(INTRO_DATA_PATH)
-
-        
-        guild_id = str(interaction.guild.id)
-        user_id = str(interaction.user.id)
+        guild_id = interaction.guild.id
+        user_id = interaction.user.id
         
         roles = get_roles(
             int(guild_id)
-        )
-        
-        VERIFIED_ROLE_ID = roles.get("VERIFIED_ROLE_ID")
+        ) or {}
 
-        NO_RENAME_ROLES = get_no_rename_roles(
-            int(guild_id)
+        # VERIFIED_INTRODUCTION_ID = roles["role_key"].get("verified_intro")
+        VERIFIED_INTRODUCTION_ID = (
+            roles.get("by_group", {})
+            .get("verified", {})
+            .get("verified_intro")
+        )
+
+        NO_RENAME_ROLES = (
+            get_no_rename_roles(
+                int(guild_id)
+            ) or []
         )
         
         # ======================
         # DATA LAMA
         # ======================
-        old_user_data = (
-            data
-            .get(guild_id, {})
-            .get(user_id, {})
-        )
+        old_user_data = get_user_profile(
+            interaction.guild.id,
+            interaction.user.id
+        ) or {}
+        
         # ======================
         # VALIDASI GAME
         # ======================
@@ -220,6 +195,7 @@ class IntroModal(discord.ui.Modal):
         # RENAME USER
         # ======================
         rename_success = True
+        blocked_rename = False
 
         try:
 
@@ -228,44 +204,6 @@ class IntroModal(discord.ui.Modal):
             blocked_rename = any(
                 role_id in NO_RENAME_ROLES
                 for role_id in member_roles
-            )
-
-            old_games = old_user_data.get(
-                "games",
-                {}
-            )
-
-            # ======================
-            # EFFECTIVE VALUE
-            # ======================
-            effective_gt = (
-                self.growtopia.value.strip()
-                if (
-                    growtopia_valid
-                    and self.growtopia.value.strip()
-                )
-                else old_games.get(
-                    "growtopia",
-                    {}
-                ).get(
-                    "value",
-                    ""
-                )
-            )
-
-            effective_pw = (
-                self.pw.value.strip()
-                if (
-                    pw_valid
-                    and self.pw.value.strip()
-                )
-                else old_games.get(
-                    "pw",
-                    {}
-                ).get(
-                    "value",
-                    ""
-                )
             )
 
             new_nick = self.nickname.value.strip()
@@ -284,8 +222,8 @@ class IntroModal(discord.ui.Modal):
         # ======================
         # DATA LAMA
         # ======================
-        old_nickname = old_user_data.get("nickname", "").strip()
-        new_nickname = self.nickname.value.strip()
+        old_nickname = (old_user_data.get("nickname") or "").strip()
+        new_nickname = (self.nickname.value or "").strip()
 
         nickname_changed = old_nickname != new_nickname
 
@@ -388,6 +326,8 @@ class IntroModal(discord.ui.Modal):
             if old_value == new_value and not nickname_changed:
                 continue
 
+            GAME_CHANNELS = get_game_channels(interaction.guild.id)
+
             channel_id = GAME_CHANNELS.get(game_key)
 
             if not channel_id:
@@ -420,12 +360,32 @@ class IntroModal(discord.ui.Modal):
                             )
 
                             await old_msg.delete()
+                            delete_intro(
+                                interaction.guild.id,
+                                interaction.user.id,
+                                game_key
+                            )
 
                         except discord.NotFound:
-                            pass
+                            delete_intro(
+                                interaction.guild.id,
+                                interaction.user.id,
+                                game_key
+                            )
 
                         except discord.Forbidden:
-                            pass
+                            await send_log(
+                                guild=interaction.guild,
+                                log_type="WARNING",
+                                action="Delete Introduction",
+                                emoji="⚠️",
+                                user=interaction.user,
+                                details={
+                                    "Game": game_key,
+                                    "Message ID": old_message_id,
+                                    "Reason": "Missing permissions"
+                                }
+                            )
 
                         except Exception as e:
 
@@ -584,87 +544,36 @@ class IntroModal(discord.ui.Modal):
                             "Error": str(e)
                         }
                     )
-            
         # ======================
         # SAVE DATA
         # ======================
-        def updater(data):
-            validation_status = {
-                "growtopia": growtopia_valid,
-                "pw": pw_valid,
-                "mlbb": mlbb_valid,
-                "roblox": roblox_valid
-            }
-
-            if guild_id not in data:
-                data[guild_id] = {}
-
-            new_games = {}
-
-            for game_key, game_value in game_fields.items():
-
-                clean_value = game_value.strip()
-
-                if not validation_status[game_key]:
-
-                    old_game = (
-                        data
-                        .get(guild_id, {})
-                        .get(user_id, {})
-                        .get("games", {})
-                        .get(game_key)
-                    )
-
-                    if old_game:
-                        new_games[game_key] = old_game
-
-                    continue
-
-                # kalau kosong jangan disimpan
-                if not clean_value:
-                    continue
-
-                # kalau ada message result baru
-                if game_key in message_results:
-                    new_games[game_key] = message_results[game_key]
-
-                else:
-                    # kalau tidak berubah ambil data lama
-                    old_game = (
-                        data
-                        .get(guild_id, {})
-                        .get(user_id, {})
-                        .get("games", {})
-                        .get(game_key)
-                    )
-
-                    if old_game:
-                        new_games[game_key] = old_game
-
-            data[guild_id][user_id] = {
-                "nickname": self.nickname.value,
-                "joined_at": interaction.user.joined_at.isoformat(),
-                "games": new_games
-            }
 
         try:
-            await update_json(INTRO_DATA_PATH, updater)
+
+            save_user_profile(
+                guild_id=interaction.guild.id,
+                user_id=interaction.user.id,
+                nickname=self.nickname.value.strip(),
+                joined_at=interaction.user.joined_at
+            )
+
+            for game_key, data in message_results.items():
+
+                save_intro(
+                    guild_id=interaction.guild.id,
+                    user_id=interaction.user.id,
+                    game_key=game_key,
+                    value=data["value"],
+                    message_id=data["message_id"],
+                    channel_id=data["channel_id"]
+                )
+
             save_success = True
+
         except Exception as e:
+
             save_success = False
             save_error = str(e)
-            
-            # ADD LOG ERROR
-            await send_log(
-                guild=interaction.guild,
-                log_type="ERROR",
-                action="Save Introduction",
-                emoji="❌",
-                user=interaction.user,
-                details={
-                    "Error": str(e)
-                }
-            )
 
         # ======================
         # RESPONSE MESSAGE
@@ -771,14 +680,14 @@ class IntroModal(discord.ui.Modal):
         # GIVE VERIFIED ROLE
         # ======================
         if save_success:
-            verified_role = interaction.guild.get_role(
-                VERIFIED_ROLE_ID
+            verified_intro = interaction.guild.get_role(
+                VERIFIED_INTRODUCTION_ID
             )
-            if verified_role:
+            if verified_intro:
                 try:
-                    if verified_role not in interaction.user.roles:
+                    if verified_intro not in interaction.user.roles:
                         await interaction.user.add_roles(
-                            verified_role,
+                            verified_intro,
                             reason="User completed intro"
                         )
                 except discord.Forbidden:
@@ -837,14 +746,14 @@ class IntroButton(discord.ui.View):
 
     @discord.ui.button(label="Isi Intro", style=discord.ButtonStyle.green, custom_id="intro_button")
     async def intro_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        # from views.intro import IntroModal, load_json
-
-        data = await load_json(INTRO_DATA_PATH)
         
-        guild_id = str(interaction.guild.id)
-        user_id = str(interaction.user.id)
+        guild_id = interaction.guild.id
+        user_id = interaction.user.id
 
-        user_data = data.get(guild_id, {}).get(user_id)
+        user_data = get_user_profile(
+            guild_id,
+            user_id
+        )
 
         await interaction.response.send_modal(IntroModal(user_data))
 
@@ -853,24 +762,13 @@ class IntroButton(discord.ui.View):
 # ======================
 async def register_persistent_views(bot):
 
-    data = await load_json(INTRO_DATA_PATH)
+    intros = get_copyview_intros()
 
-    for guild_id, guild_data in data.items():
+    for intro in intros:
 
-        for user_id, user_data in guild_data.items():
-
-            games = user_data.get("games", {})
-
-            for game_key in ["mlbb", "roblox"]:
-
-                game_data = games.get(game_key)
-
-                if not game_data:
-                    continue
-
-                if not game_data.get("message_id"):
-                    continue
-
-                bot.add_view(
-                    CopyView(game_key, user_id)
-                )
+        bot.add_view(
+            CopyView(
+                intro["game_key"],
+                str(intro["user_id"])
+            )
+        )

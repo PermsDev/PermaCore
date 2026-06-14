@@ -1,8 +1,12 @@
-from utils.json_manager import (
-    INTRO_DATA_PATH,
-    GUILD_MESSAGES_PATH,
-    load_json,
-    save_json
+from database.intro_manager import (
+    get_user_profile,
+    delete_all_user_intro,
+    delete_user_profile
+)
+
+from database.guild_message_manager import (
+    get_guild_message,
+    delete_guild_message
 )
 
 import discord
@@ -14,182 +18,170 @@ async def handle_member_remove(member):
 
     print(f"{member} keluar...")
 
-    guild_id = str(member.guild.id)
-    user_id = str(member.id)
-
     # ======================
     # LOAD DATA
     # ======================
-    data_intro = await load_json(
-        INTRO_DATA_PATH
-    )
-
-    data_guild_messages = await load_json(
-        GUILD_MESSAGES_PATH
+    intro_data = get_user_profile(
+        member.guild.id,
+        member.id
     )
 
     # ==================================================
     # HAPUS INTRO MESSAGE
     # ==================================================
-    if (
-        guild_id in data_intro
-        and user_id in data_intro[guild_id]
-    ):
+    games = intro_data.get(
+        "games",
+        {}
+    )
 
-        user_data = data_intro[guild_id][user_id]
+    for game_name, game_data in games.items():
 
-        games = user_data.get(
-            "games",
-            {}
+        channel_id = game_data.get(
+            "channel_id"
         )
 
-        for game_name, game_data in games.items():
+        message_id = game_data.get(
+            "message_id"
+        )
 
-            channel_id = game_data.get(
-                "channel_id"
+        if not channel_id or not message_id:
+            continue
+
+        channel = member.guild.get_channel(
+            int(channel_id)
+        )
+
+        if not channel:
+
+            print(
+                f"Channel {channel_id} "
+                f"tidak ditemukan."
             )
 
-            message_id = game_data.get(
-                "message_id"
+            continue
+
+        try:
+
+            message = await channel.fetch_message(
+                int(message_id)
             )
 
-            if not channel_id or not message_id:
-                continue
+            await message.delete()
 
-            channel = member.guild.get_channel(
-                channel_id
+            print(
+                f"Message {game_name} "
+                f"untuk {member} "
+                f"berhasil dihapus."
             )
 
-            if not channel:
+        except discord.NotFound:
 
-                print(
-                    f"Channel {channel_id} "
-                    f"tidak ditemukan."
-                )
+            print(
+                f"Message {game_name} "
+                f"tidak ditemukan."
+            )
 
-                continue
+        except discord.Forbidden:
+
+            print(
+                f"Tidak ada izin hapus "
+                f"message {game_name}."
+            )
+
+        except discord.HTTPException as e:
+
+            print(
+                f"Gagal hapus "
+                f"{game_name}: {e}"
+            )
+
+    # ==================================================
+    # HAPUS DATA INTRO DATABASE
+    # ==================================================
+    delete_all_user_intro(
+        member.guild.id,
+        member.id
+    )
+
+    delete_user_profile(
+        member.guild.id,
+        member.id
+    )
+
+    print(
+        f"Data intro {member} "
+        f"berhasil dihapus."
+    )
+
+    # ==================================================
+    # HAPUS WELCOME MESSAGE (DATABASE)
+    # ==================================================
+    welcome_data = get_guild_message(
+        member.guild.id,
+        member.id,
+        "welcome"
+    )
+
+    if welcome_data:
+
+        channel_id = welcome_data["channel_id"]
+        message_id = welcome_data["message_id"]
+
+        channel = member.guild.get_channel(
+            int(channel_id)
+        )
+
+        if channel:
 
             try:
 
                 message = await channel.fetch_message(
-                    message_id
+                    int(message_id)
                 )
 
                 await message.delete()
 
                 print(
-                    f"Message {game_name} "
-                    f"untuk {member} "
-                    f"berhasil dihapus."
+                    f"Welcome message "
+                    f"{member} berhasil dihapus."
                 )
 
             except discord.NotFound:
 
                 print(
-                    f"Message {game_name} "
+                    f"Welcome message "
                     f"tidak ditemukan."
                 )
 
             except discord.Forbidden:
 
                 print(
-                    f"Tidak ada izin hapus "
-                    f"message {game_name}."
+                    f"Tidak ada izin "
+                    f"hapus welcome message."
                 )
 
             except discord.HTTPException as e:
 
                 print(
                     f"Gagal hapus "
-                    f"{game_name}: {e}"
+                    f"welcome message: {e}"
                 )
 
-        # ======================
-        # HAPUS DATA USER INTRO
-        # ======================
-        del data_intro[guild_id][user_id]
+        else:
 
-        print(
-            f"Data intro {member} "
-            f"berhasil dihapus."
-        )
-
-    # ==================================================
-    # HAPUS WELCOME MESSAGE
-    # ==================================================
-    if (
-        guild_id in data_guild_messages
-        and user_id in data_guild_messages[guild_id]
-    ):
-
-        user_data = data_guild_messages[guild_id][user_id]
-
-        welcome_data = user_data.get(
-            "welcome",
-            {}
-        )
-
-        channel_id = welcome_data.get(
-            "channel_id"
-        )
-
-        message_id = welcome_data.get(
-            "message_id"
-        )
-
-        if channel_id and message_id:
-
-            channel = member.guild.get_channel(
-                int(channel_id)
+            print(
+                f"Channel welcome "
+                f"{channel_id} tidak ditemukan."
             )
 
-            if channel:
-
-                try:
-
-                    message = await channel.fetch_message(
-                        int(message_id)
-                    )
-
-                    await message.delete()
-
-                    print(
-                        f"Welcome message "
-                        f"{member} berhasil dihapus."
-                    )
-
-                except discord.NotFound:
-
-                    print(
-                        f"Welcome message "
-                        f"tidak ditemukan."
-                    )
-
-                except discord.Forbidden:
-
-                    print(
-                        f"Tidak ada izin "
-                        f"hapus welcome message."
-                    )
-
-                except discord.HTTPException as e:
-
-                    print(
-                        f"Gagal hapus "
-                        f"welcome message: {e}"
-                    )
-
-            else:
-
-                print(
-                    f"Channel welcome "
-                    f"{channel_id} tidak ditemukan."
-                )
-
         # ======================
-        # HAPUS DATA USER
+        # HAPUS DATA DATABASE
         # ======================
-        del data_guild_messages[guild_id][user_id]
+        delete_guild_message(
+            member.guild.id,
+            member.id,
+            "welcome"
+        )
 
         print(
             f"Data welcome {member} "
@@ -206,17 +198,3 @@ async def handle_member_remove(member):
         emoji="<a:statusOffline:1478032435164741777>",
         user=member
     )
-
-    # ======================
-    # SAVE JSON
-    # ======================
-    await save_json(
-        INTRO_DATA_PATH,
-        data_intro
-    )
-
-    await save_json(
-        GUILD_MESSAGES_PATH,
-        data_guild_messages
-    )
-    

@@ -1,9 +1,10 @@
 import discord
-
 from discord.ext import commands
 from discord import app_commands
+from typing import Optional
 
 from services.welcome import update_welcome_service
+
 
 class Update(commands.GroupCog, name="update"):
 
@@ -23,12 +24,10 @@ class Update(commands.GroupCog, name="update"):
     async def welcome(
         self,
         interaction: discord.Interaction,
-        user: discord.Member = None
+        user: Optional[discord.Member] = None
     ):
 
-        await interaction.response.defer(
-            ephemeral=True
-        )
+        await interaction.response.defer(ephemeral=True)
 
         result = await update_welcome_service(
             interaction=interaction,
@@ -39,6 +38,7 @@ class Update(commands.GroupCog, name="update"):
             result,
             ephemeral=True
         )
+
 
 async def setup(bot):
     await bot.add_cog(Update(bot))

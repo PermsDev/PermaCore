@@ -1,28 +1,22 @@
 import asyncio
-import json
 import discord
 
-from events.member_role_update import (
-    process_welcome,
-    get_role_groups
-)
-
-ROLE_GROUP_FILE = "data/role_group.json"
+from database.role_manager import get_roles
+from events.member_role_update import process_welcome
 
 
 # =========================
 # CHECK ROLE
 # =========================
-def has_pangkat_role(member, pangkat_roles):
+def has_pangkat_role(member, pangkat_roles: set):
 
-    member_role_ids = {
-        role.id
-        for role in member.roles
-    }
+    member_role_ids = {role.id for role in member.roles}
 
-    return bool(
-        member_role_ids & pangkat_roles
-    )
+    # pastikan semua jadi int (biar aman dari DB string)
+    pangkat_roles = {int(r) for r in pangkat_roles}
+
+    # FIX: cukup return boolean intersection
+    return bool(member_role_ids & pangkat_roles)
 
 
 # =========================
@@ -35,38 +29,29 @@ async def update_welcome_service(
 
     guild = interaction.guild
 
-    role_groups = await get_role_groups(
-        guild.id
-    )
+    # =========================
+    # LOAD ROLES FROM DB
+    # =========================
+    role_groups = get_roles(guild.id)
 
     pangkat_roles = set(
-        role_groups.get(
-            "pangkat",
-            {}
-        ).values()
+        role_groups.get("pangkat", {}).values()
     )
+
+    # safety conversion (penting karena MySQL kadang string)
+    pangkat_roles = {int(r) for r in pangkat_roles if r is not None}
 
     # =========================
     # SINGLE USER
     # =========================
     if user:
 
-        # VALIDASI ROLE
-        if not has_pangkat_role(
-            user,
-            pangkat_roles
-        ):
-            return (
-                "❌ User tersebut tidak memiliki "
-                "role pangkat yang diizinkan."
-            )
+        if not has_pangkat_role(user, pangkat_roles):
+            return "❌ User tersebut tidak memiliki role pangkat yang diizinkan."
 
         await process_welcome(user)
 
-        return (
-            f"✅ Updated welcome for "
-            f"{user.mention}"
-        )
+        return f"✅ Updated welcome for {user.mention}"
 
     # =========================
     # ALL USERS
@@ -75,22 +60,15 @@ async def update_welcome_service(
 
     for member in guild.members:
 
-        # skip bot
         if member.bot:
             continue
 
-        # hanya user dengan role pangkat
-        if not has_pangkat_role(
-            member,
-            pangkat_roles
-        ):
+        if not has_pangkat_role(member, pangkat_roles):
             continue
 
         await process_welcome(member)
-
         updated += 1
 
-        # anti rate limit
         await asyncio.sleep(0.5)
 
     return f"✅ Updated {updated} members."

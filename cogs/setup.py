@@ -5,11 +5,11 @@ from discord.ext import commands
 from views.intro import IntroButton
 from views.feedback import FeedbackButton
 
-from utils.json_manager import (
-    GUILD_SETTINGS_PATH,
-    load_json,
-    update_json
+from database.channel_manager import (
+    get_channel,
+    set_channel
 )
+
 
 # ======================
 # COG
@@ -48,29 +48,18 @@ class Setup(commands.Cog):
             )
             return
 
-        guild_id = str(interaction.guild.id)
-
-        # =========================
-        # LOAD DATA UNTUK DELETE
-        # =========================
-        data = await load_json(
-            GUILD_SETTINGS_PATH
-        )
-
-        guild_data = data.get(guild_id, {})
-
-        old_msg_id = guild_data.get(
-            "intro_message_id"
-        )
-
-        old_channel_id = guild_data.get(
-            "intro_channel_id"
-        )
-
         # =========================
         # HAPUS PANEL LAMA
         # =========================
-        if old_msg_id and old_channel_id:
+        old_data = get_channel(
+            interaction.guild.id,
+            "INTRO_CHANNEL"
+        )
+
+        if old_data:
+
+            old_msg_id = old_data["panel_message"]
+            old_channel_id = old_data["channel_id"]
 
             try:
 
@@ -78,7 +67,7 @@ class Setup(commands.Cog):
                     old_channel_id
                 )
 
-                if old_channel:
+                if old_channel and old_msg_id:
 
                     old_msg = await old_channel.fetch_message(
                         old_msg_id
@@ -109,19 +98,13 @@ class Setup(commands.Cog):
         )
 
         # =========================
-        # UPDATE JSON
+        # SIMPAN DATABASE
         # =========================
-        def updater(data):
-
-            if guild_id not in data:
-                data[guild_id] = {}
-
-            data[guild_id]["intro_message_id"] = msg.id
-            data[guild_id]["intro_channel_id"] = channel.id
-
-        await update_json(
-            GUILD_SETTINGS_PATH,
-            updater
+        set_channel(
+            interaction.guild.id,
+            "INTRO_CHANNEL",
+            channel.id,
+            msg.id
         )
 
         await interaction.response.send_message(
@@ -155,29 +138,18 @@ class Setup(commands.Cog):
             )
             return
 
-        guild_id = str(interaction.guild.id)
-
-        # =========================
-        # LOAD DATA UNTUK DELETE
-        # =========================
-        data = await load_json(
-            GUILD_SETTINGS_PATH
-        )
-
-        guild_data = data.get(guild_id, {})
-
-        old_msg_id = guild_data.get(
-            "feedback_message_id"
-        )
-
-        old_channel_id = guild_data.get(
-            "feedback_panel_channel"
-        )
-
         # =========================
         # HAPUS PANEL LAMA
         # =========================
-        if old_msg_id and old_channel_id:
+        old_data = get_channel(
+            interaction.guild.id,
+            "FEEDBACK_PANEL_CHANNEL"
+        )
+
+        if old_data:
+
+            old_msg_id = old_data["panel_message"]
+            old_channel_id = old_data["channel_id"]
 
             try:
 
@@ -185,7 +157,7 @@ class Setup(commands.Cog):
                     old_channel_id
                 )
 
-                if old_channel:
+                if old_channel and old_msg_id:
 
                     old_msg = await old_channel.fetch_message(
                         old_msg_id
@@ -216,28 +188,19 @@ class Setup(commands.Cog):
         )
 
         # =========================
-        # UPDATE JSON
+        # SIMPAN DATABASE
         # =========================
-        def updater(data):
+        set_channel(
+            interaction.guild.id,
+            "FEEDBACK_PANEL_CHANNEL",
+            panel_channel.id,
+            msg.id
+        )
 
-            if guild_id not in data:
-                data[guild_id] = {}
-
-            data[guild_id][
-                "feedback_panel_channel"
-            ] = panel_channel.id
-
-            data[guild_id][
-                "feedback_target_channel"
-            ] = target_channel.id
-
-            data[guild_id][
-                "feedback_message_id"
-            ] = msg.id
-
-        await update_json(
-            GUILD_SETTINGS_PATH,
-            updater
+        set_channel(
+            interaction.guild.id,
+            "FEEDBACK_TARGET_CHANNEL",
+            target_channel.id
         )
 
         await interaction.followup.send(
@@ -267,23 +230,10 @@ class Setup(commands.Cog):
             )
             return
 
-        guild_id = str(interaction.guild.id)
-
-        # =========================
-        # UPDATE JSON
-        # =========================
-        def updater(data):
-
-            if guild_id not in data:
-                data[guild_id] = {}
-
-            data[guild_id][
-                "log_channel"
-            ] = channel.id
-
-        await update_json(
-            GUILD_SETTINGS_PATH,
-            updater
+        set_channel(
+            interaction.guild.id,
+            "LOG_CHANNEL",
+            channel.id
         )
 
         embed = discord.Embed(
@@ -321,23 +271,10 @@ class Setup(commands.Cog):
             )
             return
 
-        guild_id = str(interaction.guild.id)
-
-        # =========================
-        # UPDATE JSON
-        # =========================
-        def updater(data):
-
-            if guild_id not in data:
-                data[guild_id] = {}
-
-            data[guild_id][
-                "welcome_channel_id"
-            ] = channel.id
-
-        await update_json(
-            GUILD_SETTINGS_PATH,
-            updater
+        set_channel(
+            interaction.guild.id,
+            "WELCOME_CHANNEL",
+            channel.id
         )
 
         embed = discord.Embed(
@@ -353,6 +290,7 @@ class Setup(commands.Cog):
             embed=embed,
             ephemeral=True
         )
+
 
 # ======================
 # LOAD COG

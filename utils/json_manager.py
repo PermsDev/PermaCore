@@ -16,19 +16,6 @@ DATA_DIR = Path("data")
 # =========================
 # JSON FILE PATHS
 # =========================
-GUILD_SETTINGS_PATH = (
-    DATA_DIR / "guild_settings.json"
-)
-
-ROLE_GROUPS_PATH = (
-    DATA_DIR / "role_groups.json"
-)
-
-GUILD_MESSAGES_PATH = (
-    DATA_DIR
-    / "messages"
-    / "guild_messages.json"
-)
 
 EXECUTIVE_MESSAGES_PATH = (
     DATA_DIR
@@ -36,21 +23,10 @@ EXECUTIVE_MESSAGES_PATH = (
     / "executive_messages.json"
 )
 
-DM_MESSAGES_PATH = (
-    DATA_DIR
-    / "messages"
-    / "dm_messages.json"
-)
-
 DELETE_QUEUE_PATH = (
     DATA_DIR
     / "messages"
     / "delete_queue.json"
-)
-
-INTRO_DATA_PATH = (
-    DATA_DIR 
-    / "intro_data.json"
 )
 
 FEEDBACK_PATH = (

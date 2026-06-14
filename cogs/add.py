@@ -4,7 +4,6 @@ from discord import app_commands
 
 from services.executive_service import add_executive_role
 
-
 class Add(commands.Cog):
     def __init__(self, bot):
         self.bot = bot

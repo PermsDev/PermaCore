@@ -1,219 +1,151 @@
-from events.member_role_update import (
-    get_role_groups
+import discord
+
+from database.role_manager import get_roles
+from database.dm_message_manager import (
+    get_dm_message,
+    delete_dm_message,
+    upsert_dm_message
 )
 
-from utils.json_manager import (
-    DM_MESSAGES_PATH,
-    load_json
-)
 
 # =========================
-# VERIFIED SYSTEM
+# VERIFIED SYSTEM (DB FLOW)
 # =========================
-async def handle_verified(member):
+async def handle_verified(member: discord.Member):
 
-    print(
-        f"[VERIFIED] Checking {member}"
-    )
+    print(f"[VERIFIED] Checking {member}")
 
-    role_groups = await get_role_groups(
-        member.guild.id
-    )
+    guild = member.guild
+    guild_id = guild.id
+    user_id = member.id
 
     # =========================
-    # VERIFIED GROUP
+    # LOAD ROLE CONFIG FROM DB
     # =========================
-    verified_group = role_groups.get(
-        "verified",
-        {}
-    )
+    roles = get_roles(guild_id)
 
-    verified_role_id = verified_group.get(
-        "verified_role"
-    )
+    verified_group = roles.get("by_group", {}).get("verified", {})
+    pangkat_group = roles.get("by_group", {}).get("pangkat", {})
 
-    verified_intro_id = verified_group.get(
-        "verified_intro"
-    )
-
-    # =========================
-    # RESIDENTS ROLE
-    # =========================
-    pangkat_group = role_groups.get("pangkat", {})
+    verified_role_id = verified_group.get("verified_role")
+    verified_intro_id = verified_group.get("verified_intro")
     residents_role_id = pangkat_group.get("residents")
 
-    # =========================
-    # INVALID DATA
-    # =========================
-    if not all([
-        verified_role_id,
-        verified_intro_id,
-        residents_role_id
-    ]):
-
-        print(
-            "[VERIFIED] Missing role configuration"
-        )
-
+    if not all([verified_role_id, verified_intro_id, residents_role_id]):
+        print("[VERIFIED] Missing role configuration")
         return
 
-    member_role_ids = {
-        role.id
-        for role in member.roles
-    }
+    member_role_ids = {role.id for role in member.roles}
 
-    has_verified = (
-        verified_role_id in member_role_ids
-    )
-
-    has_intro = (
-        verified_intro_id in member_role_ids
-    )
-
-    print(
-        f"[VERIFIED] "
-        f"verified={has_verified} | "
-        f"intro={has_intro}"
-    )
     # =========================
-    # UPDATE DM MESSAGE
+    # DEBUG STATUS
+    # =========================
+    has_verified = verified_role_id in member_role_ids
+    has_intro = verified_intro_id in member_role_ids
+
+    print(f"[VERIFIED] verified={has_verified} | intro={has_intro}")
+
+    # =========================
+    # SAFETY CHECK
+    # =========================
+    if not (has_verified and has_intro):
+        print(f"[VERIFIED] {member} not fully verified yet")
+        return
+
+    # =========================
+    # DM TRANSITION SYSTEM
     # =========================
     try:
+        dm_channel = await member.create_dm()
 
-        data = await load_json(
-            DM_MESSAGES_PATH
+        # =========================
+        # DELETE "JOINED" DM
+        # =========================
+        joined_dm_id = get_dm_message(
+            guild_id,
+            user_id,
+            "joined"
         )
 
-        guild_id = str(member.guild.id)
-        user_id = str(member.id)
+        if joined_dm_id:
+            try:
+                old_msg = await dm_channel.fetch_message(joined_dm_id)
+                await old_msg.delete()
+            except (discord.NotFound, discord.Forbidden):
+                pass
+            except Exception as e:
+                print(f"[VERIFIED] failed delete joined DM: {e}")
 
-        user_data = (
-            data
-            .get(guild_id, {})
-            .get(user_id, {})
+            delete_dm_message(
+                guild_id,
+                user_id,
+                "joined"
+            )
+
+            print(f"[VERIFIED] joined DM removed for {member}")
+
+        # =========================
+        # SEND WELCOME DM (ANTI DUPLICATE)
+        # =========================
+        existing_welcome = get_dm_message(
+            guild_id,
+            user_id,
+            "welcome"
         )
 
-        welcome_dm_id = user_data.get(
-            "welcome_dm_id"
-        )
+        if not existing_welcome:
 
-        if welcome_dm_id:
-
-            dm_channel = await member.create_dm()
-
-            dm_message = await dm_channel.fetch_message(
-                welcome_dm_id
+            welcome_text = (
+                f"## Selamat datang di server {member.guild.name}! <a:hi_man:1478080922883719238>\n\n"
+                f"🎉 Kamu sudah berhasil menyelesaikan proses verifikasi!\n\n"
+                f"Sekarang kamu resmi menjadi bagian dari komunitas ini.\n"
+                f"Silakan mulai berinteraksi, join event, dan nikmati fitur server.\n\n"
+                f"Jika butuh bantuan, jangan ragu hubungi staff ya!"
             )
 
-            verified_emoji = (
-                "<a:statusOnline:1478032492962250928>"
-                if has_verified else
-                "<a:statusOffline:1478032435164741777>"
+            new_msg = await dm_channel.send(welcome_text)
+
+            upsert_dm_message(
+                guild_id,
+                user_id,
+                "welcome",
+                new_msg.id
             )
 
-            intro_emoji = (
-                "<a:statusOnline:1478032492962250928>"
-                if has_intro else
-                "<a:statusOffline:1478032435164741777>"
-            )
+            print(f"[VERIFIED] new welcome DM sent for {member}")
 
-            await dm_message.edit(
-                content=(
-                    "## Selamat datang di server! <a:hi_man:1478080922883719238>\n\n"
-
-                    "Untuk Melanjutkan Progres Masuk Server, silahkan mendapatkan "
-                    "2 role verified dengan cara dibawah ini:\n\n"
-
-                    f"### {verified_emoji} "
-                    "Role 1: Verified Roles (1)\n"
-
-                    "- Kunjungi Channel "
-                    "<#1030430669597327380>\n"
-
-                    "- dan Click "
-                    "[Here](https://discord.com/channels/"
-                    "1030428036773990400/"
-                    "customize-community)\n"
-
-                    "- Klik reaction `Verified` "
-                    "Sampai mendapatkan role "
-                    "Verified 1\n\n"
-
-                    f"### {intro_emoji} "
-                    "Role 2: Verified Introduction (2)\n"
-
-                    "- Kunjungi Channel "
-                    "<#1501234394076020806>\n"
-
-                    "- Atau click "
-                    "[Here](https://discord.com/channels/"
-                    "1030428036773990400/"
-                    "1501234394076020806/"
-                    "1506363733608239275)\n"
-
-                    "- Isi formulir introduction "
-                    "untuk mendapatkan role "
-                    "Verified Introduction 2\n"
-                )
-            )
-
-            print(
-                f"[VERIFIED] DM updated for {member}"
-            )
+        else:
+            print(f"[VERIFIED] welcome DM already exists for {member}")
 
     except Exception as e:
+        print(f"[VERIFIED] DM FLOW ERROR: {e}")
 
-        print(
-            f"[VERIFIED] Failed update DM: {e}"
-        )
-        
     # =========================
-    # VERIFIED COMPLETE
+    # GIVE RESIDENTS ROLE
     # =========================
-    if has_verified and has_intro:
-
-        residents_role = member.guild.get_role(
-            residents_role_id
+    try:
+        residents_role = discord.utils.get(
+            guild.roles,
+            id=residents_role_id
         )
 
         if not residents_role:
-
-            print(
-                "[VERIFIED] Residents role not found"
-            )
-
+            print("[VERIFIED] Residents role not found")
             return
 
-        # =========================
-        # ALREADY HAS ROLE
-        # =========================
         if residents_role in member.roles:
-
-            print(
-                f"[VERIFIED] "
-                f"{member} already has Residents"
-            )
-
+            print(f"[VERIFIED] {member} already has Residents")
             return
 
-        # =========================
-        # ADD ROLE
-        # =========================
         await member.add_roles(
             residents_role,
-            reason=(
-                "User completed verification"
-            )
+            reason="User completed verification"
         )
 
-        print(
-            f"[VERIFIED] "
-            f"Residents added to {member}"
-        )
+        print(f"[VERIFIED] Residents added to {member}")
 
-    else:
+    except discord.Forbidden:
+        print("[VERIFIED] Missing permission to add role")
 
-        print(
-            f"[VERIFIED] "
-            f"{member} has not completed verification"
-        )
+    except Exception as e:
+        print(f"[VERIFIED] Failed to add residents role: {e}")

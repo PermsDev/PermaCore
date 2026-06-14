@@ -5,11 +5,12 @@ from datetime import datetime
 from utils.delete_scheduler import register_delete
 from utils.logger import send_log
 from utils.json_manager import (
-    GUILD_SETTINGS_PATH,
     FEEDBACK_PATH,
     load_json,
     save_json
 )
+
+from database.channel_manager import get_channel
 
 lock = asyncio.Lock()
 reply_lock = set()
@@ -294,33 +295,32 @@ class FeedbackModal(discord.ui.Modal, title="Kirim Feedback"):
 
         self.category = category
 
-    async def on_submit(self, interaction: discord.Interaction):
+    async def on_submit(
+        self,
+        interaction: discord.Interaction
+    ):
 
-        await interaction.response.defer(ephemeral=True)
-
-        data = await load_json(GUILD_SETTINGS_PATH)
-
-        guild_id = str(interaction.guild.id)
-
-        if guild_id not in data:
-
-            await interaction.followup.send(
-                "Guild belum disetting.",
-                ephemeral=True
-            )
-            return
-
-        channel_id = data[guild_id].get(
-            "feedback_target_channel"
+        await interaction.response.defer(
+            ephemeral=True
         )
 
-        if not channel_id:
+        # ======================
+        # AMBIL CHANNEL FEEDBACK
+        # ======================
+        channel_data = get_channel(
+            interaction.guild.id,
+            "FEEDBACK_TARGET_CHANNEL"
+        )
+
+        if not channel_data:
 
             await interaction.followup.send(
                 "Channel feedback belum disetting.",
                 ephemeral=True
             )
             return
+
+        channel_id = channel_data["channel_id"]
 
         channel = interaction.guild.get_channel(
             channel_id
@@ -345,7 +345,10 @@ class FeedbackModal(discord.ui.Modal, title="Kirim Feedback"):
 
         embed.add_field(
             name="User",
-            value=f"{interaction.user.mention} (`{interaction.user.id}`)",
+            value=(
+                f"{interaction.user.mention} "
+                f"(`{interaction.user.id}`)"
+            ),
             inline=False
         )
 
@@ -379,7 +382,11 @@ class FeedbackModal(discord.ui.Modal, title="Kirim Feedback"):
         # ======================
         # SAVE
         # ======================
-        feedbacks = await load_json(FEEDBACK_PATH)
+        feedbacks = await load_json(
+            FEEDBACK_PATH
+        )
+
+        guild_id = str(interaction.guild.id)
 
         if guild_id not in feedbacks:
             feedbacks[guild_id] = {}
@@ -405,7 +412,10 @@ class FeedbackModal(discord.ui.Modal, title="Kirim Feedback"):
             }
         }
 
-        await save_json(FEEDBACK_PATH, feedbacks)
+        await save_json(
+            FEEDBACK_PATH,
+            feedbacks
+        )
 
         # ======================
         # LOG
@@ -418,7 +428,10 @@ class FeedbackModal(discord.ui.Modal, title="Kirim Feedback"):
             user=interaction.user,
             details={
                 "Kategori": self.category,
-                "Link Message": f"[Klik Disini]({msg.jump_url})"
+                "Link Message": (
+                    f"[Klik Disini]"
+                    f"({msg.jump_url})"
+                )
             }
         )
 
@@ -426,7 +439,6 @@ class FeedbackModal(discord.ui.Modal, title="Kirim Feedback"):
             "Feedback berhasil dikirim!",
             ephemeral=True
         )
-
 # ======================
 # DROPDOWN CATEGORY
 # ======================
