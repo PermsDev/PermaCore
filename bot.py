@@ -81,7 +81,7 @@ class MyBot(commands.Bot):
         # ======================
         self.add_view(IntroButton())
         self.add_view(FeedbackButton())
-        
+                
         self.add_view(ExecutiveInfoView("guild"))
         self.add_view(ExecutiveInfoView("clan"))
         self.add_view(ExecutiveInfoView("sinyalid"))
@@ -159,29 +159,22 @@ async def on_member_update(before, after):
     role_groups = get_roles(after.guild.id)
     changed_roles = get_changed_roles(before, after)
 
-    print("[DEBUG] HAS PANGKAT:", has_pangkat(after, role_groups))
-    print("[DEBUG] HAS CHANGE:", has_role_group_change(before, after, role_groups))
-
     # =========================
     # VERIFY CHECK
     # =========================
     verified_roles = set(role_groups["by_group"]["verified"].values())
 
-    # ❌ BUG 2: pakai "changed_roles" (stale state)
     if changed_roles & verified_roles:
-        print("[DEBUG] Verified role changed -> triggering handle_verified")
         await handle_verified(after)
 
     # =========================
     # WELCOME CHECK
     # =========================
 
-    # ❌ BUG 3: pakai role cache lama dari event BEFORE update stabil
     if has_pangkat(after, role_groups):
 
         # ❌ BUG 4: logic ini sering False karena timing Discord event
         if has_role_group_change(before, after, role_groups):
-            print("[DEBUG] Role group change detected -> triggering welcome update")
             await process_welcome(after)
 
 bot.run(TOKEN)

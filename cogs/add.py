@@ -18,7 +18,7 @@ class Add(commands.Cog):
 
     @add.command(
         name="executive",
-        description="Add executive role to member | Admin only"
+        description="(Admin only) Add executive role to member"
     )
     @app_commands.describe(
         executive_type="Jenis executive",

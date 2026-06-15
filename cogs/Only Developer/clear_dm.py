@@ -5,6 +5,7 @@ from discord.ext import commands
 from discord import app_commands
 
 from database.dm_message_manager import get_dm_message
+from database.delete_queue_manager import delete_queue_item
 from utils.logger import send_log
 
 OWNER_ID = int(os.getenv("OWNER_ID"))
@@ -18,7 +19,6 @@ PROTECTED_DM_TYPES = {
     "intro"
 }
 
-
 class ClearDM(commands.Cog):
 
     def __init__(self, bot):
@@ -26,7 +26,7 @@ class ClearDM(commands.Cog):
 
     @app_commands.command(
         name="clearbotdm",
-        description="Hapus DM bot (kecuali protected)"
+        description="(Only Developer) Hapus DM bot dari semua user atau target tertentu"
     )
     @app_commands.check(
         lambda interaction: interaction.user.id == OWNER_ID
@@ -113,6 +113,16 @@ class ClearDM(commands.Cog):
 
                         await message.delete()
                         deleted += 1
+
+                        # ======================
+                        # REMOVE FROM DB QUEUE
+                        # ======================
+                        try:
+                            delete_queue_item(message.id)
+                        except Exception as e:
+                            print(f"[QUEUE DELETE ERROR] {e}")
+
+                        await asyncio.sleep(0.5)
 
                         await asyncio.sleep(0.5)
 

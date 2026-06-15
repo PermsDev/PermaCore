@@ -44,14 +44,19 @@ class ReplyModal(discord.ui.Modal, title="Balas Feedback"):
         interaction: discord.Interaction
     ):
 
+        print("[FEEDBACK] Reply process started")
+
         await interaction.response.defer(ephemeral=True)
 
         message_id = self.message.id
 
-        # ======================
-        # LOCK CHECK
-        # ======================
+        print(f"[FEEDBACK] Message ID: {message_id}")
+        print(f"[FEEDBACK] Admin: {interaction.user} ({interaction.user.id})")
+
         if message_id in reply_lock:
+
+            print("[FEEDBACK] Already being processed")
+
             await interaction.followup.send(
                 "Feedback sedang diproses.",
                 ephemeral=True
@@ -60,15 +65,26 @@ class ReplyModal(discord.ui.Modal, title="Balas Feedback"):
 
         reply_lock.add(message_id)
 
+        print("[FEEDBACK] Lock acquired")
+
         try:
+
+            print(f"[FEEDBACK] Fetching user {self.user_id}")
 
             user = await interaction.client.fetch_user(
                 self.user_id
             )
 
+            print(
+                f"[FEEDBACK] User found: "
+                f"{user} ({user.id})"
+            )
+
             # ======================
             # DM USER
             # ======================
+            print("[FEEDBACK] Building DM embed")
+
             dm_embed = discord.Embed(
                 title="📨 Balasan Feedback",
                 description=self.reply.value,
@@ -82,7 +98,19 @@ class ReplyModal(discord.ui.Modal, title="Balas Feedback"):
                 inline=False
             )
 
-            dm_msg = await user.send(embed=dm_embed)
+            print("[FEEDBACK] Sending DM")
+
+            dm_msg = await user.send(
+                embed=dm_embed
+            )
+
+            print(
+                f"[FEEDBACK] DM sent "
+                f"(channel={dm_msg.channel.id}, "
+                f"message={dm_msg.id})"
+            )
+
+            print("[FEEDBACK] Register delete scheduler")
 
             await register_delete(
                 channel_id=dm_msg.channel.id,
@@ -90,9 +118,13 @@ class ReplyModal(discord.ui.Modal, title="Balas Feedback"):
                 delete_after="7d"
             )
 
+            print("[FEEDBACK] Delete scheduler registered")
+
             # ======================
             # EDIT FEEDBACK EMBED
             # ======================
+            print("[FEEDBACK] Updating feedback embed")
+
             embed = self.original_embed.copy()
 
             embed.color = discord.Color.green()
@@ -118,9 +150,13 @@ class ReplyModal(discord.ui.Modal, title="Balas Feedback"):
                 view=None
             )
 
+            print("[FEEDBACK] Feedback message updated")
+
             # ======================
             # SAVE DATA
             # ======================
+            print("[FEEDBACK] Saving to database")
+
             reply_feedback(
                 message_id=message_id,
                 admin_id=interaction.user.id,
@@ -129,9 +165,13 @@ class ReplyModal(discord.ui.Modal, title="Balas Feedback"):
                 replied_at=datetime.now()
             )
 
+            print("[FEEDBACK] Database updated")
+
             # ======================
             # LOG
             # ======================
+            print("[FEEDBACK] Sending log")
+
             await send_log(
                 guild=interaction.guild,
                 log_type="SUCCESS",
@@ -144,12 +184,21 @@ class ReplyModal(discord.ui.Modal, title="Balas Feedback"):
                 }
             )
 
+            print("[FEEDBACK] Log sent")
+
             await interaction.followup.send(
                 "Balasan berhasil dikirim.",
                 ephemeral=True
             )
 
+            print("[FEEDBACK] Reply completed successfully")
+
         except discord.Forbidden:
+
+            print(
+                f"[FEEDBACK] DM CLOSED "
+                f"for user {self.user_id}"
+            )
 
             await send_log(
                 guild=interaction.guild,
@@ -171,7 +220,10 @@ class ReplyModal(discord.ui.Modal, title="Balas Feedback"):
 
         except Exception as e:
 
-            print(f"ERROR REPLY FEEDBACK: {e}")
+            print(
+                f"[FEEDBACK] ERROR: "
+                f"{type(e).__name__}: {e}"
+            )
 
             await send_log(
                 guild=interaction.guild,
@@ -192,7 +244,13 @@ class ReplyModal(discord.ui.Modal, title="Balas Feedback"):
             )
 
         finally:
+
             reply_lock.discard(message_id)
+
+            print(
+                f"[FEEDBACK] Lock released "
+                f"for message {message_id}"
+            )
 
 # ======================
 # VIEW BALASAN ADMIN

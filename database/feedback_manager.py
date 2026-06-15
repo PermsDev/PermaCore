@@ -1,4 +1,6 @@
-import mysql.connector
+# database/feedback_manager.py
+
+from database.database import get_connection
 
 # Function to create a new feedback entry
 def create_feedback(
@@ -11,13 +13,7 @@ def create_feedback(
     feedback,
     sent_at
 ):
-    conn = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="",
-        database="permacore"
-    )
-
+    conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -54,12 +50,7 @@ def reply_feedback(
     reply,
     replied_at
 ):
-    conn = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="",
-        database="permacore"
-    )
+    conn = get_connection()
 
     cursor = conn.cursor()
 
@@ -84,12 +75,7 @@ def reply_feedback(
 
 # Function to retrieve feedback by message_id
 def get_feedback(message_id):
-    conn = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="",
-        database="permacore"
-    )
+    conn = get_connection()
 
     cursor = conn.cursor(dictionary=True)
 
@@ -107,12 +93,7 @@ def get_feedback(message_id):
 
 # Function to retrieve all feedbacks for a guild
 def get_guild_feedbacks(guild_id):
-    conn = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="",
-        database="permacore"
-    )
+    conn = get_connection()
 
     cursor = conn.cursor(dictionary=True)
 
@@ -131,12 +112,7 @@ def get_guild_feedbacks(guild_id):
 
 # Function to delete feedback by message_id
 def delete_feedback(message_id):
-    conn = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="",
-        database="permacore"
-    )
+    conn = get_connection()
 
     cursor = conn.cursor()
 
@@ -149,12 +125,7 @@ def delete_feedback(message_id):
     conn.close()
     
 def get_pending_feedbacks():
-    conn = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="",
-        database="permacore"
-    )
+    conn = get_connection()
 
     cursor = conn.cursor(dictionary=True)
 

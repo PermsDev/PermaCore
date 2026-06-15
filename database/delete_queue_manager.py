@@ -1,3 +1,5 @@
+# database/delete_queue_manager.py
+
 from database.database import get_connection
 
 # =========================

@@ -18,6 +18,12 @@ class Update(commands.GroupCog, name="update"):
         name="welcome",
         description="Update welcome message"
     )
+    @app_commands.default_permissions(
+        administrator=True
+    )
+    @app_commands.checks.has_permissions(
+        administrator=True
+    )
     @app_commands.describe(
         user="Optional user"
     )
@@ -27,7 +33,9 @@ class Update(commands.GroupCog, name="update"):
         user: Optional[discord.Member] = None
     ):
 
-        await interaction.response.defer(ephemeral=True)
+        await interaction.response.defer(
+            ephemeral=True
+        )
 
         result = await update_welcome_service(
             interaction=interaction,
@@ -38,6 +46,23 @@ class Update(commands.GroupCog, name="update"):
             result,
             ephemeral=True
         )
+
+    @welcome.error
+    async def welcome_error(
+        self,
+        interaction: discord.Interaction,
+        error: app_commands.AppCommandError
+    ):
+        if isinstance(
+            error,
+            app_commands.MissingPermissions
+        ):
+            await interaction.response.send_message(
+                "❌ Kamu harus memiliki permission Administrator.",
+                ephemeral=True
+            )
+        else:
+            raise error
 
 
 async def setup(bot):

@@ -7,7 +7,7 @@ from database.delete_queue_manager import (
     get_expired_delete_queue,
     delete_queue_item
 )
-from utils import parse_duration
+from utils.parse_duration import parse_duration
 
 # =========================
 # REGISTER MESSAGE DELETE

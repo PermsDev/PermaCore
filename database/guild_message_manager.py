@@ -1,5 +1,6 @@
-from database.database import get_connection
+# database/guild_message_manager.py
 
+from database.database import get_connection
 
 # =========================
 # GET MESSAGE
@@ -86,3 +87,23 @@ def delete_guild_message(guild_id: int, user_id: int, message_type: str):
     finally:
         cursor.close()
         conn.close()
+        
+# ========================
+# GET ALL MESSAGES FOR GUILD
+# ========================
+def get_all_guild_messages(guild_id: int):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT message_id, channel_id, user_id, message_type
+        FROM guild_message_db
+        WHERE guild_id = %s
+    """, (guild_id,))
+
+    result = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return result
