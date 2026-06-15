@@ -39,6 +39,7 @@ GUILD_ID = int(os.getenv("GUILD_ID"))
 # ======================
 intents = discord.Intents.default()
 intents.members = True
+intents.message_content = True
 
 # ======================
 # BOT CLASS

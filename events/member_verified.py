@@ -13,8 +13,6 @@ from database.dm_message_manager import (
 # =========================
 async def handle_verified(member: discord.Member):
 
-    print(f"[VERIFIED] Checking {member}")
-
     guild = member.guild
     guild_id = guild.id
     user_id = member.id
@@ -27,11 +25,12 @@ async def handle_verified(member: discord.Member):
     verified_group = roles.get("by_group", {}).get("verified", {})
     pangkat_group = roles.get("by_group", {}).get("pangkat", {})
 
-    verified_role_id = verified_group.get("verified_role")
+    # verified_role_id = verified_group.get("verified_role")
     verified_intro_id = verified_group.get("verified_intro")
     residents_role_id = pangkat_group.get("residents")
 
-    if not all([verified_role_id, verified_intro_id, residents_role_id]):
+    if not all([verified_intro_id, residents_role_id]):
+    # if not all([verified_role_id, verified_intro_id, residents_role_id]):
         print("[VERIFIED] Missing role configuration")
         return
 
@@ -40,15 +39,14 @@ async def handle_verified(member: discord.Member):
     # =========================
     # DEBUG STATUS
     # =========================
-    has_verified = verified_role_id in member_role_ids
+    # has_verified = verified_role_id in member_role_ids
     has_intro = verified_intro_id in member_role_ids
-
-    print(f"[VERIFIED] verified={has_verified} | intro={has_intro}")
 
     # =========================
     # SAFETY CHECK
     # =========================
-    if not (has_verified and has_intro):
+    if not has_intro:
+    # if not (has_verified and has_intro):
         print(f"[VERIFIED] {member} not fully verified yet")
         return
 
@@ -82,8 +80,6 @@ async def handle_verified(member: discord.Member):
                 "joined"
             )
 
-            print(f"[VERIFIED] joined DM removed for {member}")
-
         # =========================
         # SEND WELCOME DM (ANTI DUPLICATE)
         # =========================
@@ -111,8 +107,6 @@ async def handle_verified(member: discord.Member):
                 "welcome",
                 new_msg.id
             )
-
-            print(f"[VERIFIED] new welcome DM sent for {member}")
 
         else:
             print(f"[VERIFIED] welcome DM already exists for {member}")
