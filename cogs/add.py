@@ -28,15 +28,15 @@ class Add(commands.Cog):
         executive_type=[
             app_commands.Choice(
                 name="Guild Executive",
-                value="guild"
+                value="executive_guild"
             ),
             app_commands.Choice(
                 name="Clan Executive",
-                value="clan"
+                value="executive_clan"
             ),
             app_commands.Choice(
                 name="SinyalID Executive",
-                value="sinyalid"
+                value="executive_sinyalid"
             ),
         ]
     )

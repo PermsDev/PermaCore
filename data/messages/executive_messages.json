@@ -1,5 +1,5 @@
 {
-    "guild": {
+    "executive_guild": {
         "tugas": {
             "title": "<a:crowns2:1507955877116903516>  Tugas Executive:",
             "description": [
@@ -75,7 +75,7 @@
         }
     },
 
-    "clan": {
+    "executive_clan": {
         "tugas": {
             "title": "<a:crowns2:1507955877116903516>  Tugas Executive Clan",
             "description": ""
@@ -102,7 +102,7 @@
         }
     },
 
-    "sinyalid": {
+    "executive_sinyalid": {
         "tugas": {
             "title": "<a:crowns2:1507955877116903516>  Tugas Executive SinyalID",
             "description": ""

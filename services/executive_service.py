@@ -26,14 +26,17 @@ def get_executive_roles(guild_id: int):
 
 EXECUTIVE_CONFIG = {
     "executive_guild": {
+        "role_key": "executive_guild",
         "game_key": "growtopia",
         "emoji": "❄️"
     },
     "executive_clan": {
+        "role_key": "executive_clan",
         "game_key": "pw",
         "emoji": "🔆"
     },
     "executive_sinyalid": {
+        "role_key": "executive_sinyalid",
         "game_key": "growtopia",
         "emoji": "📶"
     }
