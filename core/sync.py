@@ -1,15 +1,6 @@
-import os
 import discord
-
-from dotenv import load_dotenv
 from discord.ext import commands
-
-# ======================
-# LOAD ENV
-# ======================
-load_dotenv()
-
-GUILD_ID = int(os.getenv("GUILD_ID"))
+from database.guild_key_manager import get_guild_ids
 
 
 # ==================================================
@@ -31,20 +22,23 @@ async def sync_public_commands(bot: commands.Bot):
 # MAIN
 # ==================================================
 async def sync_main_commands(bot: commands.Bot):
-    """
-    Sync seluruh Main Commands ke guild utama.
-    """
 
     print("[Sync] Syncing Main Commands...")
 
-    guild = discord.Object(id=GUILD_ID)
+    guild_ids = get_guild_ids("Main")
 
-    bot.tree.copy_global_to(
-        guild=guild
-    )
+    for guild_id in guild_ids:
 
-    synced = await bot.tree.sync(
-        guild=guild
-    )
+        guild = discord.Object(id=guild_id)
 
-    print(f"[Sync] Synced {len(synced)} Main Commands.")
+        bot.tree.copy_global_to(
+            guild=guild
+        )
+
+        synced = await bot.tree.sync(
+            guild=guild
+        )
+
+        print(
+            f"[Sync] Main -> {guild_id} ({len(synced)} Commands)"
+        )
