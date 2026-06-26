@@ -2,6 +2,7 @@ import os, discord
 from dotenv import load_dotenv
 from discord.ext import commands
 
+from events.guild_join import handle_guild_join
 from utils.delete_scheduler import delete_checker
 
 from views.intro import IntroButton, register_persistent_views
@@ -141,6 +142,10 @@ async def on_ready():
         load_roles(guild.id)
     
     print(f"Bot login sebagai {bot.user}")
+
+@bot.event
+async def on_guild_join(guild):
+    await handle_guild_join(guild)
 
 @bot.event
 async def on_member_join(member):
