@@ -149,14 +149,20 @@ async def on_guild_join(guild):
 
 @bot.event
 async def on_member_join(member):
+    if member.bot:
+        return
     await handle_member_join(member)
     
 @bot.event
 async def on_member_remove(member):
+    if member.bot:
+        return
     await handle_member_remove(member)
     
 @bot.event
 async def on_member_update(before, after):
+    if after.bot:
+        return
 
     # ❌ BUG 1: terlalu cepat return
     if before.roles == after.roles:
