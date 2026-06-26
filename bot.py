@@ -2,7 +2,6 @@ import os, discord
 from dotenv import load_dotenv
 from discord.ext import commands
 
-from events.guild_join import handle_guild_join
 from utils.delete_scheduler import delete_checker
 
 from views.intro import IntroButton, register_persistent_views
@@ -16,6 +15,9 @@ from database.role_manager import (
     load_roles,
     get_roles_by_group
 )
+
+from events.guild_join import handle_guild_join
+from events.guild_remove import handle_guild_remove
 
 from events.member_join import handle_member_join
 from events.member_remove import handle_member_remove
@@ -146,6 +148,10 @@ async def on_ready():
 @bot.event
 async def on_guild_join(guild):
     await handle_guild_join(guild)
+    
+@bot.event
+async def on_guild_remove(guild):
+    await handle_guild_remove(guild)
 
 @bot.event
 async def on_member_join(member):

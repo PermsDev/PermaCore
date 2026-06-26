@@ -15,3 +15,18 @@ def add_guild(guild_id: int, nama_guild: str):
 
     cursor.close()
     conn.close()
+    
+    
+def remove_guild(guild_id: int):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "DELETE FROM guild_db WHERE guild_id = %s",
+        (guild_id,)
+    )
+
+    conn.commit()
+
+    cursor.close()
+    conn.close()
