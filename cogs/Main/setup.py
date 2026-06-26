@@ -10,7 +10,6 @@ from database.channel_manager import (
     set_channel
 )
 
-
 # ======================
 # COG
 # ======================

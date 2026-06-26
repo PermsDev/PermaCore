@@ -1,6 +1,16 @@
-import os, discord
+import os
+import discord
 from dotenv import load_dotenv
 from discord.ext import commands
+
+from core.loader import (
+    load_public_cogs,
+    load_main_cogs
+)
+from core.sync import (
+    sync_public_commands,
+    sync_main_commands
+)
 
 from utils.delete_scheduler import delete_checker
 
@@ -13,7 +23,6 @@ from database.feedback_manager import get_pending_feedbacks
 from database.role_manager import (
     get_roles,
     load_roles,
-    get_roles_by_group
 )
 
 from events.guild_join import handle_guild_join
@@ -35,7 +44,6 @@ from events.member_role_update import (
 load_dotenv()
 
 TOKEN = os.getenv("TOKEN")
-GUILD_ID = int(os.getenv("GUILD_ID"))
 
 # ======================
 # DISCORD INTENTS
@@ -44,84 +52,45 @@ intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
 
+
 # ======================
 # BOT CLASS
 # ======================
 class MyBot(commands.Bot):
-    async def setup_hook(self):
 
+    async def setup_hook(self):
+        
         # ======================
-        # LOAD ALL COGS RECURSIVE
+        # LOAD COGS
         # ======================
-        for root, dirs, files in os.walk("./cogs"):
-            for filename in files:
-                
-                # hanya file python
-                if not filename.endswith(".py"):
-                    continue
-                
-                # skip private/helper files
-                if filename.startswith("_"):
-                    continue
-                
-                path = os.path.join(
-                    root, 
-                    filename
-                )
-                
-                module = os.path.relpath(path, ".") \
-                    .replace("\\", ".") \
-                    .replace("/", ".") \
-                    .removesuffix(".py")
-                # hapus titik di depan jika ada
-                # module = module.lstrip(".")
-                
-                await self.load_extension(
-                    module
-                )
-                
+        await load_public_cogs(self)
+        await sync_public_commands(self)
+        
+        await load_main_cogs(self)
+        await sync_main_commands(self)        
+
         # ======================
         # REGISTER PERSISTENT VIEWS
         # ======================
         self.add_view(IntroButton())
         self.add_view(FeedbackButton())
-                
+
         self.add_view(ExecutiveInfoView("guild"))
         self.add_view(ExecutiveInfoView("clan"))
         self.add_view(ExecutiveInfoView("sinyalid"))
-        
+
         await register_persistent_views(self)
-        
+
         # ======================
         # RESTORE FEEDBACK BUTTONS
         # ======================
         pending_feedbacks = get_pending_feedbacks()
 
         for feedback in pending_feedbacks:
-
             self.add_view(
                 ReplyView(),
                 message_id=feedback["message_id"]
             )
-            
-        # ======================
-        # SYNC SLASH COMMANDS (GUILD-SPECIFIC)
-        # ======================
-        guild = discord.Object(
-            id=GUILD_ID
-        )
-        
-        self.tree.copy_global_to(
-            guild=guild
-        )
-        
-        synced = await self.tree.sync(
-            guild=guild
-        )
-        
-        print(
-            f"Synced {len(synced)} commands (guild)"
-        )
 
 # ======================
 # BOT INSTANCE
@@ -131,46 +100,66 @@ bot = MyBot(
     intents=intents
 )
 
+
 # ======================
 # BOT READY
 # ======================
 @bot.event
 async def on_ready():
+
     load_emojis()
-    bot.loop.create_task(delete_checker(bot))
-    
+
+    bot.loop.create_task(
+        delete_checker(bot)
+    )
+
     # preload semua guild roles ke cache
     for guild in bot.guilds:
         load_roles(guild.id)
-    
+
     print(f"Bot login sebagai {bot.user}")
 
+
+# ======================
+# GUILD EVENTS
+# ======================
 @bot.event
 async def on_guild_join(guild):
     await handle_guild_join(guild)
-    
+
+
 @bot.event
 async def on_guild_remove(guild):
     await handle_guild_remove(guild)
 
+
+# ======================
+# MEMBER EVENTS
+# ======================
 @bot.event
 async def on_member_join(member):
+
     if member.bot:
         return
+
     await handle_member_join(member)
-    
+
+
 @bot.event
 async def on_member_remove(member):
+
     if member.bot:
         return
+
     await handle_member_remove(member)
-    
+
+
 @bot.event
 async def on_member_update(before, after):
+
     if after.bot:
         return
 
-    # ❌ BUG 1: terlalu cepat return
     if before.roles == after.roles:
         return
 
@@ -180,7 +169,9 @@ async def on_member_update(before, after):
     # =========================
     # VERIFY CHECK
     # =========================
-    verified_roles = set(role_groups["by_group"]["verified"].values())
+    verified_roles = set(
+        role_groups["by_group"]["verified"].values()
+    )
 
     if changed_roles & verified_roles:
         await handle_verified(after)
@@ -188,11 +179,13 @@ async def on_member_update(before, after):
     # =========================
     # WELCOME CHECK
     # =========================
-
     if has_pangkat(after, role_groups):
 
-        # ❌ BUG 4: logic ini sering False karena timing Discord event
         if has_role_group_change(before, after, role_groups):
             await process_welcome(after)
 
+
+# ======================
+# RUN BOT
+# ======================
 bot.run(TOKEN)
