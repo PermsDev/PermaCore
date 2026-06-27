@@ -55,30 +55,33 @@ async def upsert_guild_message(
     pool = get_pool()
 
     async with pool.acquire() as conn:
-        async with conn.cursor() as cursor:
-
-            await cursor.execute("""
-                INSERT INTO guild_message_db (
+        try:
+            async with conn.cursor() as cursor:
+                await cursor.execute("""
+                    INSERT INTO guild_message_db (
+                        guild_id,
+                        user_id,
+                        message_type,
+                        channel_id,
+                        message_id
+                    )
+                    VALUES (%s, %s, %s, %s, %s)
+                    ON DUPLICATE KEY UPDATE
+                        channel_id = VALUES(channel_id),
+                        message_id = VALUES(message_id)
+                """, (
                     guild_id,
                     user_id,
                     message_type,
                     channel_id,
                     message_id
-                )
-                VALUES (%s, %s, %s, %s, %s)
-                ON DUPLICATE KEY UPDATE
-                    channel_id = VALUES(channel_id),
-                    message_id = VALUES(message_id)
-            """, (
-                guild_id,
-                user_id,
-                message_type,
-                channel_id,
-                message_id
-            ))
+                ))
 
             await conn.commit()
-
+                
+        except Exception:
+            await conn.rollback()
+            raise
 
 # =========================
 # DELETE MESSAGE TYPE
@@ -91,20 +94,23 @@ async def delete_guild_message(
     pool = get_pool()
 
     async with pool.acquire() as conn:
-        async with conn.cursor() as cursor:
-
-            await cursor.execute("""
-                DELETE FROM guild_message_db
-                WHERE guild_id = %s
-                  AND user_id = %s
-                  AND message_type = %s
-            """, (
-                guild_id,
-                user_id,
-                message_type
-            ))
+        try:
+            async with conn.cursor() as cursor:
+                await cursor.execute("""
+                    DELETE FROM guild_message_db
+                    WHERE guild_id = %s
+                    AND user_id = %s
+                    AND message_type = %s
+                """, (
+                    guild_id,
+                    user_id,
+                    message_type
+                ))
 
             await conn.commit()
+        except Exception:
+            await conn.rollback()
+            raise
 
 
 # =========================

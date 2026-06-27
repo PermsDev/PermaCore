@@ -66,28 +66,31 @@ async def set_channel(
     pool = get_pool()
 
     async with pool.acquire() as conn:
-        async with conn.cursor() as cursor:
-
-            await cursor.execute("""
-                INSERT INTO channel_db (
+        try:
+            async with conn.cursor() as cursor:
+                await cursor.execute("""
+                    INSERT INTO channel_db (
+                        guild_id,
+                        channel_key,
+                        channel_id,
+                        panel_message
+                    )
+                    VALUES (%s, %s, %s, %s)
+                    ON DUPLICATE KEY UPDATE
+                        channel_id = VALUES(channel_id),
+                        panel_message = VALUES(panel_message)
+                """, (
                     guild_id,
                     channel_key,
                     channel_id,
                     panel_message
-                )
-                VALUES (%s, %s, %s, %s)
-                ON DUPLICATE KEY UPDATE
-                    channel_id = VALUES(channel_id),
-                    panel_message = VALUES(panel_message)
-            """, (
-                guild_id,
-                channel_key,
-                channel_id,
-                panel_message
-            ))
+                ))
 
-        await conn.commit()
-
+            await conn.commit()
+            
+        except Exception:
+            await conn.rollback()
+            raise
 
 # ==================================================
 # delete channel
@@ -99,19 +102,22 @@ async def delete_channel(
     pool = get_pool()
 
     async with pool.acquire() as conn:
-        async with conn.cursor() as cursor:
+        try:
+            async with conn.cursor() as cursor:
+                await cursor.execute("""
+                    DELETE FROM channel_db
+                    WHERE guild_id = %s
+                    AND channel_key = %s
+                """, (
+                    guild_id,
+                    channel_key
+                ))
 
-            await cursor.execute("""
-                DELETE FROM channel_db
-                WHERE guild_id = %s
-                AND channel_key = %s
-            """, (
-                guild_id,
-                channel_key
-            ))
-
-        await conn.commit()
-
+            await conn.commit()
+            
+        except Exception:
+            await conn.rollback()
+            raise
 
 # ==================================================
 # game channels

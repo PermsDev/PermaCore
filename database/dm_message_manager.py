@@ -46,28 +46,31 @@ async def upsert_dm_message(
     pool = get_pool()
 
     async with pool.acquire() as conn:
-        async with conn.cursor() as cursor:
+        try:
+            async with conn.cursor() as cursor:
+                await cursor.execute("""
+                    INSERT INTO dm_message_db (
+                        guild_id,
+                        user_id,
+                        dm_type,
+                        message_id
+                    )
+                    VALUES (%s, %s, %s, %s)
 
-            await cursor.execute("""
-                INSERT INTO dm_message_db (
+                    ON DUPLICATE KEY UPDATE
+                        message_id = VALUES(message_id)
+                """, (
                     guild_id,
                     user_id,
                     dm_type,
                     message_id
-                )
-                VALUES (%s, %s, %s, %s)
+                ))
 
-                ON DUPLICATE KEY UPDATE
-                    message_id = VALUES(message_id)
-            """, (
-                guild_id,
-                user_id,
-                dm_type,
-                message_id
-            ))
-
-        await conn.commit()
-
+            await conn.commit()
+            
+        except Exception:
+            await conn.rollback()
+            raise
 
 # ==================================================
 # DELETE DM MESSAGE
@@ -81,20 +84,24 @@ async def delete_dm_message(
     pool = get_pool()
 
     async with pool.acquire() as conn:
-        async with conn.cursor() as cursor:
+        try:
+            async with conn.cursor() as cursor:
+                await cursor.execute("""
+                    DELETE FROM dm_message_db
+                    WHERE guild_id = %s
+                        AND user_id = %s
+                        AND dm_type = %s
+                """, (
+                    guild_id,
+                    user_id,
+                    dm_type
+                ))
 
-            await cursor.execute("""
-                DELETE FROM dm_message_db
-                WHERE guild_id = %s
-                    AND user_id = %s
-                    AND dm_type = %s
-            """, (
-                guild_id,
-                user_id,
-                dm_type
-            ))
-
-        await conn.commit()
+            await conn.commit()
+            
+        except Exception:
+            await conn.rollback()
+            raise
 
 
 # ==================================================

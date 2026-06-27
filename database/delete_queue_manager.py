@@ -13,27 +13,30 @@ async def upsert_delete_queue(
     pool = get_pool()
 
     async with pool.acquire() as conn:
-        async with conn.cursor() as cursor:
+        try:
+            async with conn.cursor() as cursor:
+                await cursor.execute("""
+                    INSERT INTO delete_queue_db (
+                        channel_id,
+                        message_id,
+                        delete_at
+                    )
+                    VALUES (%s, %s, %s)
 
-            await cursor.execute("""
-                INSERT INTO delete_queue_db (
+                    ON DUPLICATE KEY UPDATE
+                        channel_id = VALUES(channel_id),
+                        delete_at = VALUES(delete_at)
+                """, (
                     channel_id,
                     message_id,
                     delete_at
-                )
-                VALUES (%s, %s, %s)
+                ))
 
-                ON DUPLICATE KEY UPDATE
-                    channel_id = VALUES(channel_id),
-                    delete_at = VALUES(delete_at)
-            """, (
-                channel_id,
-                message_id,
-                delete_at
-            ))
-
-        await conn.commit()
-
+            await conn.commit()
+            
+        except Exception:
+            await conn.rollback()
+            raise
 
 # ==================================================
 # GET ALL QUEUE
@@ -89,16 +92,20 @@ async def delete_queue_item(
     pool = get_pool()
 
     async with pool.acquire() as conn:
-        async with conn.cursor() as cursor:
+        try:
+            async with conn.cursor() as cursor:
+                await cursor.execute("""
+                    DELETE FROM delete_queue_db
+                    WHERE message_id = %s
+                """, (
+                    message_id,
+                ))
 
-            await cursor.execute("""
-                DELETE FROM delete_queue_db
-                WHERE message_id = %s
-            """, (
-                message_id,
-            ))
-
-        await conn.commit()
+            await conn.commit()
+            
+        except Exception:
+            await conn.rollback()
+            raise
 
 
 # ==================================================
@@ -108,10 +115,15 @@ async def clear_delete_queue():
     pool = get_pool()
 
     async with pool.acquire() as conn:
-        async with conn.cursor() as cursor:
+        try:
+            async with conn.cursor() as cursor:
 
-            await cursor.execute("""
-                DELETE FROM delete_queue_db
-            """)
+                await cursor.execute("""
+                    DELETE FROM delete_queue_db
+                """)
 
-        await conn.commit()
+            await conn.commit()
+            
+        except Exception:
+            await conn.rollback()
+            raise

@@ -8,21 +8,25 @@ async def ensure_user_exists(
     pool = get_pool()
 
     async with pool.acquire() as conn:
-        async with conn.cursor() as cursor:
-
-            await cursor.execute("""
-                INSERT INTO user_db (
+        try:
+            async with conn.cursor() as cursor:
+                await cursor.execute("""
+                    INSERT INTO user_db (
+                        user_id,
+                        guild_id,
+                        nickname,
+                        joined_at
+                    )
+                    VALUES (%s, %s, NULL, NULL)
+                    ON DUPLICATE KEY UPDATE
+                        user_id = user_id
+                """, (
                     user_id,
-                    guild_id,
-                    nickname,
-                    joined_at
-                )
-                VALUES (%s, %s, NULL, NULL)
-                ON DUPLICATE KEY UPDATE
-                    user_id = user_id
-            """, (
-                user_id,
-                guild_id
-            ))
+                    guild_id
+                ))
 
-        await conn.commit()
+            await conn.commit()
+            
+        except Exception:
+            await conn.rollback()
+            raise

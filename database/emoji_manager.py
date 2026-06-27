@@ -76,24 +76,28 @@ async def set_emoji(
     pool = get_pool()
 
     async with pool.acquire() as conn:
-        async with conn.cursor() as cursor:
+        try:
+            async with conn.cursor() as cursor:
+                await cursor.execute("""
+                    INSERT INTO emoji_db (
+                        emoji_key,
+                        emoji_id
+                    )
+                    VALUES (%s, %s)
 
-            await cursor.execute("""
-                INSERT INTO emoji_db (
+                    ON DUPLICATE KEY UPDATE
+                        emoji_id = VALUES(emoji_id)
+                """, (
                     emoji_key,
                     emoji_id
-                )
-                VALUES (%s, %s)
+                ))
 
-                ON DUPLICATE KEY UPDATE
-                    emoji_id = VALUES(emoji_id)
-            """, (
-                emoji_key,
-                emoji_id
-            ))
-
-        await conn.commit()
-
+            await conn.commit()
+            
+        except Exception:
+            await conn.rollback()
+            raise
+        
     EMOJIS[emoji_key] = emoji_id
 
 
@@ -106,16 +110,19 @@ async def delete_emoji(
     pool = get_pool()
 
     async with pool.acquire() as conn:
-        async with conn.cursor() as cursor:
+        try:
+            async with conn.cursor() as cursor:
+                await cursor.execute("""
+                    DELETE FROM emoji_db
+                    WHERE emoji_key = %s
+                """, (
+                    emoji_key,
+                ))
 
-            await cursor.execute("""
-                DELETE FROM emoji_db
-                WHERE emoji_key = %s
-            """, (
-                emoji_key,
-            ))
-
-        await conn.commit()
+            await conn.commit()
+        except Exception:
+            await conn.rollback()
+            raise
 
     EMOJIS.pop(
         emoji_key,

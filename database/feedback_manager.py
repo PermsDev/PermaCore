@@ -17,10 +17,21 @@ async def create_feedback(
     pool = get_pool()
 
     async with pool.acquire() as conn:
-        async with conn.cursor() as cursor:
-
-            await cursor.execute("""
-                INSERT INTO feedback_db (
+        try:
+            async with conn.cursor() as cursor:
+                await cursor.execute("""
+                    INSERT INTO feedback_db (
+                        message_id,
+                        guild_id,
+                        channel_id,
+                        category,
+                        user_id,
+                        username,
+                        feedback,
+                        sent_at
+                    )
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """, (
                     message_id,
                     guild_id,
                     channel_id,
@@ -29,21 +40,13 @@ async def create_feedback(
                     username,
                     feedback,
                     sent_at
-                )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-            """, (
-                message_id,
-                guild_id,
-                channel_id,
-                category,
-                user_id,
-                username,
-                feedback,
-                sent_at
-            ))
+                ))
 
-        await conn.commit()
-
+            await conn.commit()
+            
+        except Exception:
+            await conn.rollback()
+            raise
 
 # ==================================================
 # REPLY FEEDBACK
@@ -137,16 +140,19 @@ async def delete_feedback(
     pool = get_pool()
 
     async with pool.acquire() as conn:
-        async with conn.cursor() as cursor:
+        try:
+            async with conn.cursor() as cursor:
+                await cursor.execute("""
+                    DELETE FROM feedback_db
+                    WHERE message_id = %s
+                """, (
+                    message_id,
+                ))
 
-            await cursor.execute("""
-                DELETE FROM feedback_db
-                WHERE message_id = %s
-            """, (
-                message_id,
-            ))
-
-        await conn.commit()
+            await conn.commit()
+        except Exception:
+            await conn.rollback()
+            raise
 
 
 # ==================================================

@@ -29,24 +29,27 @@ async def add_guild(
     pool = get_pool()
 
     async with pool.acquire() as conn:
-        async with conn.cursor() as cursor:
+        try:
+            async with conn.cursor() as cursor:
+                await cursor.execute("""
+                    INSERT INTO guild_db (
+                        guild_id,
+                        nama_guild
+                    )
+                    VALUES (%s, %s)
 
-            await cursor.execute("""
-                INSERT INTO guild_db (
+                    ON DUPLICATE KEY UPDATE
+                        nama_guild = VALUES(nama_guild)
+                """, (
                     guild_id,
                     nama_guild
-                )
-                VALUES (%s, %s)
+                ))
 
-                ON DUPLICATE KEY UPDATE
-                    nama_guild = VALUES(nama_guild)
-            """, (
-                guild_id,
-                nama_guild
-            ))
-
-        await conn.commit()
-
+            await conn.commit()
+            
+        except Exception:
+            await conn.rollback()
+            raise
 
 # ==================================================
 # REMOVE GUILD
@@ -57,13 +60,16 @@ async def remove_guild(
     pool = get_pool()
 
     async with pool.acquire() as conn:
-        async with conn.cursor() as cursor:
+        try:
+            async with conn.cursor() as cursor:
+                await cursor.execute("""
+                    DELETE FROM guild_db
+                    WHERE guild_id = %s
+                """, (
+                    guild_id,
+                ))
 
-            await cursor.execute("""
-                DELETE FROM guild_db
-                WHERE guild_id = %s
-            """, (
-                guild_id,
-            ))
-
-        await conn.commit()
+            await conn.commit()
+        except Exception:
+            await conn.rollback()
+            raise

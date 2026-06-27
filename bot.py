@@ -18,11 +18,15 @@ from core.sync import (
     sync_partner_growtopia_commands
 )
 
+from database.guild_key_manager import get_guild_ids
 from utils.delete_scheduler import delete_checker
 
 from views.intro import IntroButton, register_persistent_views
 from views.feedback import FeedbackButton, ReplyView
 from views.executive_info_view import ExecutiveInfoView
+
+from views.Partnership.Growtopia.introduction import GTIntroductionView
+
 
 from database.database import init_database
 from database.emoji_manager import load_emojis
@@ -72,22 +76,6 @@ class MyBot(commands.Bot):
         await init_database()
 
         # ======================
-        # SYNC
-        # ======================
-
-        # await load_public_cogs(self)
-        # await sync_public_commands(self)
-        # await unload_public_cogs(self)
-
-        # await load_main_cogs(self)
-        # await sync_main_commands(self)
-        # await unload_main_cogs(self)
-
-        # await load_partner_growtopia_cogs(self)
-        # await sync_partner_growtopia_commands(self)
-        # await unload_partner_growtopia_cogs(self)
-
-        # ======================
         # LOAD UNTUK RUNTIME
         # ======================
 
@@ -104,6 +92,8 @@ class MyBot(commands.Bot):
         self.add_view(ExecutiveInfoView("guild"))
         self.add_view(ExecutiveInfoView("clan"))
         self.add_view(ExecutiveInfoView("sinyalid"))
+        
+        self.add_view(GTIntroductionView())
 
         await register_persistent_views(self)
 
@@ -183,6 +173,11 @@ async def on_member_remove(member):
 async def on_member_update(before, after):
 
     if after.bot:
+        return
+
+    # Hanya proses guild yang termasuk guild_key "MAIN"
+    main_guilds = await get_guild_ids("MAIN")
+    if after.guild.id not in main_guilds:
         return
 
     if before.roles == after.roles:

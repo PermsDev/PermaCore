@@ -78,27 +78,31 @@ async def save_user_profile(
     pool = get_pool()
 
     async with pool.acquire() as conn:
-        async with conn.cursor() as cursor:
-
-            await cursor.execute("""
-                INSERT INTO user_db (
+        try:
+            async with conn.cursor() as cursor:
+                await cursor.execute("""
+                    INSERT INTO user_db (
+                        user_id,
+                        guild_id,
+                        nickname,
+                        joined_at
+                    )
+                    VALUES (%s,%s,%s,%s)
+                    ON DUPLICATE KEY UPDATE
+                        nickname=VALUES(nickname),
+                        joined_at=VALUES(joined_at)
+                """, (
                     user_id,
                     guild_id,
                     nickname,
                     joined_at
-                )
-                VALUES (%s,%s,%s,%s)
-                ON DUPLICATE KEY UPDATE
-                    nickname=VALUES(nickname),
-                    joined_at=VALUES(joined_at)
-            """, (
-                user_id,
-                guild_id,
-                nickname,
-                joined_at
-            ))
+                ))
 
             await conn.commit()
+            
+        except Exception:
+            await conn.rollback()
+            raise
 
 
 # ======================
@@ -199,33 +203,36 @@ async def save_intro(
     pool = get_pool()
 
     async with pool.acquire() as conn:
-        async with conn.cursor() as cursor:
-
-            await cursor.execute("""
-                INSERT INTO intro_db(
+        try:
+            async with conn.cursor() as cursor:
+                await cursor.execute("""
+                    INSERT INTO intro_db(
+                        user_id,
+                        guild_id,
+                        game_key,
+                        value,
+                        message_id,
+                        channel_id
+                    )
+                    VALUES(%s,%s,%s,%s,%s,%s)
+                    ON DUPLICATE KEY UPDATE
+                        value=VALUES(value),
+                        message_id=VALUES(message_id),
+                        channel_id=VALUES(channel_id)
+                """, (
                     user_id,
                     guild_id,
                     game_key,
                     value,
                     message_id,
                     channel_id
-                )
-                VALUES(%s,%s,%s,%s,%s,%s)
-                ON DUPLICATE KEY UPDATE
-                    value=VALUES(value),
-                    message_id=VALUES(message_id),
-                    channel_id=VALUES(channel_id)
-            """, (
-                user_id,
-                guild_id,
-                game_key,
-                value,
-                message_id,
-                channel_id
-            ))
+                ))
 
             await conn.commit()
-
+            
+        except Exception:
+            await conn.rollback()
+            raise
 
 async def delete_intro(
     guild_id: int,
@@ -235,20 +242,23 @@ async def delete_intro(
     pool = get_pool()
 
     async with pool.acquire() as conn:
-        async with conn.cursor() as cursor:
-
-            await cursor.execute("""
-                DELETE FROM intro_db
-                WHERE guild_id=%s
-                  AND user_id=%s
-                  AND game_key=%s
-            """, (
-                guild_id,
-                user_id,
-                game_key
-            ))
+        try:
+            async with conn.cursor() as cursor:
+                await cursor.execute("""
+                    DELETE FROM intro_db
+                    WHERE guild_id=%s
+                    AND user_id=%s
+                    AND game_key=%s
+                """, (
+                    guild_id,
+                    user_id,
+                    game_key
+                ))
 
             await conn.commit()
+        except Exception:
+            await conn.rollback()
+            raise
 
 
 async def delete_all_user_intro(
@@ -258,18 +268,21 @@ async def delete_all_user_intro(
     pool = get_pool()
 
     async with pool.acquire() as conn:
-        async with conn.cursor() as cursor:
-
-            await cursor.execute("""
-                DELETE FROM intro_db
-                WHERE guild_id=%s
-                  AND user_id=%s
-            """, (
-                guild_id,
-                user_id
-            ))
+        try:
+            async with conn.cursor() as cursor:
+                await cursor.execute("""
+                    DELETE FROM intro_db
+                    WHERE guild_id=%s
+                    AND user_id=%s
+                """, (
+                    guild_id,
+                    user_id
+                ))
 
             await conn.commit()
+        except Exception:
+            await conn.rollback()
+            raise
 
 
 async def delete_user_profile(
@@ -279,18 +292,21 @@ async def delete_user_profile(
     pool = get_pool()
 
     async with pool.acquire() as conn:
-        async with conn.cursor() as cursor:
-
-            await cursor.execute("""
-                DELETE FROM user_db
-                WHERE guild_id=%s
-                  AND user_id=%s
-            """, (
-                guild_id,
-                user_id
-            ))
-
+        try:
+            async with conn.cursor() as cursor:
+                await cursor.execute("""
+                    DELETE FROM user_db
+                    WHERE guild_id=%s
+                    AND user_id=%s
+                """, (
+                    guild_id,
+                    user_id
+                ))
             await conn.commit()
+            
+        except Exception:
+            await conn.rollback()
+            raise
 
 
 # ======================
