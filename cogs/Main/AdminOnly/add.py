@@ -62,6 +62,5 @@ class Add(commands.Cog):
             executive_type=executive_type.value
         )
 
-
 async def setup(bot):
     await bot.add_cog(Add(bot))
