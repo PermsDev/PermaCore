@@ -157,7 +157,7 @@ class ReplyModal(discord.ui.Modal, title="Balas Feedback"):
             # ======================
             print("[FEEDBACK] Saving to database")
 
-            reply_feedback(
+            await reply_feedback(
                 message_id=message_id,
                 admin_id=interaction.user.id,
                 admin_name=str(interaction.user),
@@ -352,7 +352,7 @@ class FeedbackModal(discord.ui.Modal, title="Kirim Feedback"):
         # ======================
         # AMBIL CHANNEL FEEDBACK
         # ======================
-        channel_data = get_channel(
+        channel_data = await get_channel(
             interaction.guild.id,
             "FEEDBACK_TARGET_CHANNEL"
         )
@@ -427,7 +427,7 @@ class FeedbackModal(discord.ui.Modal, title="Kirim Feedback"):
         # ======================
         # SAVE
         # ======================
-        create_feedback(
+        await create_feedback(
             message_id=msg.id,
             guild_id=interaction.guild.id,
             channel_id=channel.id,

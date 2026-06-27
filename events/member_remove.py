@@ -20,7 +20,7 @@ async def handle_member_remove(member):
     # ==================================================
     # LOAD INTRO DATA
     # ==================================================
-    intro_data = get_user_profile(member.guild.id, member.id) or {}
+    intro_data = await get_user_profile(member.guild.id, member.id) or {}
 
     games = intro_data.get("games", {})
 
@@ -60,7 +60,7 @@ async def handle_member_remove(member):
     # HAPUS WELCOME MESSAGE (DISCORD + DB SAFE ORDER)
     # ==================================================
 
-    welcome_data = get_guild_message(member.guild.id, member.id, "welcome")
+    welcome_data = await get_guild_message(member.guild.id, member.id, "welcome")
 
     if welcome_data:
 
@@ -100,7 +100,7 @@ async def handle_member_remove(member):
         print(f"Gagal hapus intro DB: {e}")
 
     try:
-        delete_guild_message(member.guild.id, member.id, "welcome")
+        await delete_guild_message(member.guild.id, member.id, "welcome")
         print(f"Welcome DB {member} berhasil dihapus.")
     except Exception as e:
         print(f"Gagal hapus welcome DB: {e}")

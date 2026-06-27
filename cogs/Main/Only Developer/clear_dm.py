@@ -85,7 +85,7 @@ class ClearDM(commands.Cog):
 
                     for dm_type in PROTECTED_DM_TYPES:
 
-                        protected_id = get_dm_message(
+                        protected_id = await get_dm_message(
                             guild.id,
                             member.id,
                             dm_type
@@ -118,7 +118,7 @@ class ClearDM(commands.Cog):
                         # REMOVE FROM DB QUEUE
                         # ======================
                         try:
-                            delete_queue_item(message.id)
+                            await delete_queue_item(message.id)
                         except Exception as e:
                             print(f"[QUEUE DELETE ERROR] {e}")
 

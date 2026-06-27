@@ -1,109 +1,143 @@
 # database/guild_message_manager.py
 
-from database.database import get_connection
+from database.database import get_pool
+
 
 # =========================
 # GET MESSAGE
 # =========================
-def get_guild_message(guild_id: int, user_id: int, message_type: str):
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+async def get_guild_message(
+    guild_id: int,
+    user_id: int,
+    message_type: str
+):
+    pool = get_pool()
 
-    try:
-        cursor.execute("""
-            SELECT message_id, channel_id
-            FROM guild_message_db
-            WHERE guild_id = %s
-                AND user_id = %s
-                AND message_type = %s
-            LIMIT 1
-        """, (guild_id, user_id, message_type))
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
 
-        return cursor.fetchone()
+            await cursor.execute("""
+                SELECT
+                    message_id,
+                    channel_id
+                FROM guild_message_db
+                WHERE guild_id = %s
+                  AND user_id = %s
+                  AND message_type = %s
+                LIMIT 1
+            """, (
+                guild_id,
+                user_id,
+                message_type
+            ))
 
-    finally:
-        cursor.close()
-        conn.close()
+            row = await cursor.fetchone()
+
+            if row is None:
+                return None
+
+            return {
+                "message_id": row[0],
+                "channel_id": row[1]
+            }
 
 
 # =========================
 # UPSERT MESSAGE
 # =========================
-def upsert_guild_message(
+async def upsert_guild_message(
     guild_id: int,
     user_id: int,
     message_type: str,
     channel_id: int,
     message_id: int
 ):
-    conn = get_connection()
-    cursor = conn.cursor()
+    pool = get_pool()
 
-    try:
-        cursor.execute("""
-            INSERT INTO guild_message_db (
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
+
+            await cursor.execute("""
+                INSERT INTO guild_message_db (
+                    guild_id,
+                    user_id,
+                    message_type,
+                    channel_id,
+                    message_id
+                )
+                VALUES (%s, %s, %s, %s, %s)
+                ON DUPLICATE KEY UPDATE
+                    channel_id = VALUES(channel_id),
+                    message_id = VALUES(message_id)
+            """, (
                 guild_id,
                 user_id,
                 message_type,
                 channel_id,
                 message_id
-            )
-            VALUES (%s, %s, %s, %s, %s)
-            ON DUPLICATE KEY UPDATE
-                channel_id = VALUES(channel_id),
-                message_id = VALUES(message_id)
-        """, (
-            guild_id,
-            user_id,
-            message_type,
-            channel_id,
-            message_id
-        ))
+            ))
 
-        conn.commit()
-
-    finally:
-        cursor.close()
-        conn.close()
+            await conn.commit()
 
 
 # =========================
 # DELETE MESSAGE TYPE
 # =========================
-def delete_guild_message(guild_id: int, user_id: int, message_type: str):
-    conn = get_connection()
-    cursor = conn.cursor()
+async def delete_guild_message(
+    guild_id: int,
+    user_id: int,
+    message_type: str
+):
+    pool = get_pool()
 
-    try:
-        cursor.execute("""
-            DELETE FROM guild_message_db
-            WHERE guild_id = %s
-                AND user_id = %s
-                AND message_type = %s
-        """, (guild_id, user_id, message_type))
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
 
-        conn.commit()
+            await cursor.execute("""
+                DELETE FROM guild_message_db
+                WHERE guild_id = %s
+                  AND user_id = %s
+                  AND message_type = %s
+            """, (
+                guild_id,
+                user_id,
+                message_type
+            ))
 
-    finally:
-        cursor.close()
-        conn.close()
-        
-# ========================
+            await conn.commit()
+
+
+# =========================
 # GET ALL MESSAGES FOR GUILD
-# ========================
-def get_all_guild_messages(guild_id: int):
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+# =========================
+async def get_all_guild_messages(
+    guild_id: int
+):
+    pool = get_pool()
 
-    cursor.execute("""
-        SELECT message_id, channel_id, user_id, message_type
-        FROM guild_message_db
-        WHERE guild_id = %s
-    """, (guild_id,))
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
 
-    result = cursor.fetchall()
+            await cursor.execute("""
+                SELECT
+                    message_id,
+                    channel_id,
+                    user_id,
+                    message_type
+                FROM guild_message_db
+                WHERE guild_id = %s
+            """, (
+                guild_id,
+            ))
 
-    cursor.close()
-    conn.close()
+            rows = await cursor.fetchall()
 
-    return result
+            return [
+                {
+                    "message_id": row[0],
+                    "channel_id": row[1],
+                    "user_id": row[2],
+                    "message_type": row[3]
+                }
+                for row in rows
+            ]

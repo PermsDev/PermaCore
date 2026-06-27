@@ -26,10 +26,10 @@ async def register_delete(
         time.time() + delete_after
     )
 
-    upsert_delete_queue(
-        channel_id=channel_id,
-        message_id=message_id,
-        delete_at=expire_time
+    await upsert_delete_queue(
+        channel_id,
+        message_id,
+        expire_time
     )
 
 
@@ -44,9 +44,8 @@ async def delete_checker(bot):
 
         now = time.time()
 
-        expired_items = (
-            get_expired_delete_queue(now)
-        )
+        
+        expired_items = await get_expired_delete_queue(now)
 
         for item in expired_items:
 
@@ -62,17 +61,13 @@ async def delete_checker(bot):
 
                 await message.delete()
 
-                delete_queue_item(
-                    item["message_id"]
-                )
+                await delete_queue_item(item["message_id"])
 
             except discord.NotFound:
 
-                delete_queue_item(
-                    item["message_id"]
-                )
+                await delete_queue_item(item["message_id"])
 
             except Exception as e:
                 print(e)
 
-        await asyncio.sleep(5)
+        await asyncio.sleep(60)

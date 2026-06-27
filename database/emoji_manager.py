@@ -1,123 +1,121 @@
-from database.database import get_connection
+from database.database import get_pool
+from asyncmy.cursors import DictCursor
 
-# =========================
+# ==================================================
 # CACHE EMOJI
-# =========================
+# ==================================================
 EMOJIS = {}
 
-# =========================
+
+# ==================================================
 # LOAD SEMUA EMOJI
-# =========================
-def load_emojis():
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+# ==================================================
+async def load_emojis():
+    pool = get_pool()
 
-    cursor.execute("""
-        SELECT emoji_key, emoji_id
-        FROM emoji_db
-    """)
+    async with pool.acquire() as conn:
+        async with conn.cursor(DictCursor) as cursor:
 
-    rows = cursor.fetchall()
+            await cursor.execute("""
+                SELECT emoji_key, emoji_id
+                FROM emoji_db
+            """)
 
-    cursor.close()
-    conn.close()
+            rows = await cursor.fetchall()
 
     EMOJIS.clear()
 
     for row in rows:
         EMOJIS[row["emoji_key"]] = row["emoji_id"]
 
-# =========================
+# ==================================================
 # RELOAD CACHE
-# =========================
-def reload_emojis():
-    load_emojis()
+# ==================================================
+async def reload_emojis():
+    await load_emojis()
 
-# =========================
+
+# ==================================================
 # GET SEMUA EMOJI
-# =========================
+# ==================================================
 def get_emojis():
     return EMOJIS.copy()
 
-# =========================
+
+# ==================================================
 # GET EMOJI ID
-# =========================
+# ==================================================
 def get_emoji_id(
     emoji_key: str
 ):
-    return EMOJIS.get(
-        emoji_key
-    )
+    return EMOJIS.get(emoji_key)
 
-# =========================
+
+# ==================================================
 # GET FORMAT EMOJI DISCORD
-# =========================
+# ==================================================
 def get_emoji(
     emoji_key: str,
     default: str = "🎯"
 ):
-    emoji_id = EMOJIS.get(
-        emoji_key
-    )
+    emoji_id = EMOJIS.get(emoji_key)
 
     if not emoji_id:
         return default
 
-    return (
-        f"<:{emoji_key}:"
-        f"{emoji_id}>"
-    )
+    return f"<:{emoji_key}:{emoji_id}>"
 
-# =========================
+
+# ==================================================
 # TAMBAH / UPDATE EMOJI
-# =========================
-def set_emoji(
+# ==================================================
+async def set_emoji(
     emoji_key: str,
     emoji_id: int
 ):
-    conn = get_connection()
-    cursor = conn.cursor()
+    pool = get_pool()
 
-    cursor.execute("""
-        INSERT INTO emoji_db (
-            emoji_key,
-            emoji_id
-        )
-        VALUES (%s, %s)
-        ON DUPLICATE KEY UPDATE
-            emoji_id = VALUES(emoji_id)
-    """, (
-        emoji_key,
-        emoji_id
-    ))
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
 
-    conn.commit()
+            await cursor.execute("""
+                INSERT INTO emoji_db (
+                    emoji_key,
+                    emoji_id
+                )
+                VALUES (%s, %s)
 
-    cursor.close()
-    conn.close()
+                ON DUPLICATE KEY UPDATE
+                    emoji_id = VALUES(emoji_id)
+            """, (
+                emoji_key,
+                emoji_id
+            ))
+
+        await conn.commit()
 
     EMOJIS[emoji_key] = emoji_id
 
-# =========================
+
+# ==================================================
 # HAPUS EMOJI
-# =========================
-def delete_emoji(
+# ==================================================
+async def delete_emoji(
     emoji_key: str
 ):
-    conn = get_connection()
-    cursor = conn.cursor()
+    pool = get_pool()
 
-    cursor.execute("""
-        DELETE FROM emoji_db
-        WHERE emoji_key = %s
-    """, (
-        emoji_key,
-    ))
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
 
-    conn.commit()
+            await cursor.execute("""
+                DELETE FROM emoji_db
+                WHERE emoji_key = %s
+            """, (
+                emoji_key,
+            ))
 
-    cursor.close()
-    conn.close()
+        await conn.commit()
 
     EMOJIS.pop(
         emoji_key,

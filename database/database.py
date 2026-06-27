@@ -1,22 +1,32 @@
 import os
-import mysql.connector
 
 from dotenv import load_dotenv
-from mysql.connector.pooling import MySQLConnectionPool
+from asyncmy import create_pool
 
 load_dotenv()
 
-pool = MySQLConnectionPool(
-    pool_name="permacore_pool",
-    pool_size=10,
-    host=os.getenv("DB_HOST"),
-    port=int(os.getenv("DB_PORT")),
-    user=os.getenv("DB_USER"),
-    password=os.getenv("DB_PASSWORD"),
-    database=os.getenv("DB_NAME"),
-    autocommit=False,
-    ssl_disabled=False
-)
+pool = None
 
-def get_connection():
-    return pool.get_connection()
+
+async def init_database():
+    global pool
+
+    if pool is None:
+        pool = await create_pool(
+            host=os.getenv("DB_HOST"),
+            port=int(os.getenv("DB_PORT")),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD"),
+            db=os.getenv("DB_NAME"),
+
+            minsize=5,
+            maxsize=10,
+
+            autocommit=False,
+
+            pool_recycle=300
+        )
+
+
+def get_pool():
+    return pool

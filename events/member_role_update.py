@@ -183,7 +183,7 @@ async def process_welcome(member: discord.Member):
 
     guild = member.guild
 
-    channel_data = get_channel(guild.id, "WELCOME_CHANNEL")
+    channel_data = await get_channel(guild.id, "WELCOME_CHANNEL")
     if not channel_data:
         return
 
@@ -191,11 +191,11 @@ async def process_welcome(member: discord.Member):
     if not channel:
         return
 
-    role_groups = get_roles(guild.id)
+    role_groups = await get_roles(guild.id)
 
     embed = build_welcome_embed(member, role_groups)
 
-    msg = get_guild_message(guild.id, member.id, "welcome")
+    msg = await get_guild_message(guild.id, member.id, "welcome")
     message_id = msg["message_id"] if msg else None
 
     if message_id:
@@ -208,7 +208,7 @@ async def process_welcome(member: discord.Member):
 
     message = await channel.send(embed=embed)
 
-    upsert_guild_message(
+    await upsert_guild_message(
         guild.id,
         member.id,
         "welcome",

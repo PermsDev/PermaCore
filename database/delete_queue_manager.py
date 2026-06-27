@@ -1,122 +1,117 @@
-# database/delete_queue_manager.py
+from database.database import get_pool
+from asyncmy.cursors import DictCursor
 
-from database.database import get_connection
 
-# =========================
+# ==================================================
 # CREATE / UPDATE QUEUE
-# =========================
-def upsert_delete_queue(
+# ==================================================
+async def upsert_delete_queue(
     channel_id: int,
     message_id: int,
     delete_at: float
 ):
-    conn = get_connection()
-    cursor = conn.cursor()
+    pool = get_pool()
 
-    cursor.execute("""
-        INSERT INTO delete_queue_db (
-            channel_id,
-            message_id,
-            delete_at
-        )
-        VALUES (%s, %s, %s)
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
 
-        ON DUPLICATE KEY UPDATE
-            channel_id = VALUES(channel_id),
-            delete_at = VALUES(delete_at)
-    """, (
-        channel_id,
-        message_id,
-        delete_at
-    ))
+            await cursor.execute("""
+                INSERT INTO delete_queue_db (
+                    channel_id,
+                    message_id,
+                    delete_at
+                )
+                VALUES (%s, %s, %s)
 
-    conn.commit()
+                ON DUPLICATE KEY UPDATE
+                    channel_id = VALUES(channel_id),
+                    delete_at = VALUES(delete_at)
+            """, (
+                channel_id,
+                message_id,
+                delete_at
+            ))
 
-    cursor.close()
-    conn.close()
+        await conn.commit()
 
 
-# =========================
+# ==================================================
 # GET ALL QUEUE
-# =========================
-def get_delete_queue():
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+# ==================================================
+async def get_delete_queue():
+    pool = get_pool()
 
-    cursor.execute("""
-        SELECT *
-        FROM delete_queue_db
-        ORDER BY delete_at ASC
-    """)
+    async with pool.acquire() as conn:
+        async with conn.cursor(DictCursor) as cursor:
 
-    result = cursor.fetchall()
+            await cursor.execute("""
+                SELECT *
+                FROM delete_queue_db
+                ORDER BY delete_at ASC
+            """)
 
-    cursor.close()
-    conn.close()
+            result = await cursor.fetchall()
 
     return result
 
 
-# =========================
+# ==================================================
 # GET EXPIRED QUEUE
-# =========================
-def get_expired_delete_queue(
+# ==================================================
+async def get_expired_delete_queue(
     current_time: float
 ):
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    pool = get_pool()
 
-    cursor.execute("""
-        SELECT *
-        FROM delete_queue_db
-        WHERE delete_at <= %s
-        ORDER BY delete_at ASC
-    """, (
-        current_time,
-    ))
+    async with pool.acquire() as conn:
+        async with conn.cursor(DictCursor) as cursor:
 
-    result = cursor.fetchall()
+            await cursor.execute("""
+                SELECT *
+                FROM delete_queue_db
+                WHERE delete_at <= %s
+                ORDER BY delete_at ASC
+            """, (
+                current_time,
+            ))
 
-    cursor.close()
-    conn.close()
+            result = await cursor.fetchall()
 
     return result
 
 
-# =========================
+# ==================================================
 # DELETE QUEUE ITEM
-# =========================
-def delete_queue_item(
+# ==================================================
+async def delete_queue_item(
     message_id: int
 ):
-    conn = get_connection()
-    cursor = conn.cursor()
+    pool = get_pool()
 
-    cursor.execute("""
-        DELETE FROM delete_queue_db
-        WHERE message_id = %s
-    """, (
-        message_id,
-    ))
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
 
-    conn.commit()
+            await cursor.execute("""
+                DELETE FROM delete_queue_db
+                WHERE message_id = %s
+            """, (
+                message_id,
+            ))
 
-    cursor.close()
-    conn.close()
+        await conn.commit()
 
 
-# =========================
+# ==================================================
 # CLEAR ALL QUEUE
-# =========================
-def clear_delete_queue():
-    conn = get_connection()
-    cursor = conn.cursor()
+# ==================================================
+async def clear_delete_queue():
+    pool = get_pool()
 
-    cursor.execute("""
-        DELETE FROM delete_queue_db
-    """)
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
 
-    conn.commit()
+            await cursor.execute("""
+                DELETE FROM delete_queue_db
+            """)
 
-    cursor.close()
-    conn.close()
+        await conn.commit()

@@ -1,20 +1,22 @@
-from database.database import get_connection
+from database.database import get_pool
+from asyncmy.cursors import DictCursor
 
+# ==================================================
 # membaca semua channel untuk guild tertentu
-def get_channels(guild_id: int):
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+# ==================================================
+async def get_channels(guild_id: int):
+    pool = get_pool()
 
-    cursor.execute("""
-        SELECT channel_key, channel_id, panel_message
-        FROM channel_db
-        WHERE guild_id = %s
-    """, (guild_id,))
+    async with pool.acquire() as conn:
+        async with conn.cursor(DictCursor) as cursor:
 
-    rows = cursor.fetchall()
+            await cursor.execute("""
+                SELECT channel_key, channel_id, panel_message
+                FROM channel_db
+                WHERE guild_id = %s
+            """, (guild_id,))
 
-    cursor.close()
-    conn.close()
+            rows = await cursor.fetchall()
 
     return {
         row["channel_key"]: {
@@ -24,102 +26,115 @@ def get_channels(guild_id: int):
         for row in rows
     }
 
-# membaca channel tertentu berdasarkan channel_key
-def get_channel(guild_id: int, channel_key: str):
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
 
-    cursor.execute("""
-        SELECT channel_id, panel_message
-        FROM channel_db
-        WHERE guild_id = %s
-        AND channel_key = %s
-    """, (guild_id, channel_key))
+# ==================================================
+# membaca channel tertentu
+# ==================================================
+async def get_channel(guild_id: int, channel_key: str):
+    pool = get_pool()
 
-    row = cursor.fetchone()
+    async with pool.acquire() as conn:
+        async with conn.cursor(DictCursor) as cursor:
 
-    cursor.close()
-    conn.close()
+            await cursor.execute("""
+                SELECT channel_id, panel_message
+                FROM channel_db
+                WHERE guild_id = %s
+                AND channel_key = %s
+            """, (guild_id, channel_key))
 
-    return row
+            row = await cursor.fetchone()
 
-# menambahkan atau memperbarui channel untuk guild tertentu
-def set_channel(
+    if row is None:
+        return None
+
+    return {
+        "channel_id": row["channel_id"],
+        "panel_message": row["panel_message"]
+    }
+
+
+# ==================================================
+# insert / update channel
+# ==================================================
+async def set_channel(
     guild_id: int,
     channel_key: str,
     channel_id: int,
     panel_message: int = None
 ):
-    conn = get_connection()
-    cursor = conn.cursor()
+    pool = get_pool()
 
-    cursor.execute("""
-        INSERT INTO channel_db (
-            guild_id,
-            channel_key,
-            channel_id,
-            panel_message
-        )
-        VALUES (%s, %s, %s, %s)
-        ON DUPLICATE KEY UPDATE
-            channel_id = VALUES(channel_id),
-            panel_message = VALUES(panel_message)
-    """, (
-        guild_id,
-        channel_key,
-        channel_id,
-        panel_message
-    ))
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
 
-    conn.commit()
+            await cursor.execute("""
+                INSERT INTO channel_db (
+                    guild_id,
+                    channel_key,
+                    channel_id,
+                    panel_message
+                )
+                VALUES (%s, %s, %s, %s)
+                ON DUPLICATE KEY UPDATE
+                    channel_id = VALUES(channel_id),
+                    panel_message = VALUES(panel_message)
+            """, (
+                guild_id,
+                channel_key,
+                channel_id,
+                panel_message
+            ))
 
-    cursor.close()
-    conn.close()
+        await conn.commit()
 
-# menghapus channel untuk guild tertentu berdasarkan channel_key
-def delete_channel(
+
+# ==================================================
+# delete channel
+# ==================================================
+async def delete_channel(
     guild_id: int,
     channel_key: str
 ):
-    conn = get_connection()
-    cursor = conn.cursor()
+    pool = get_pool()
 
-    cursor.execute("""
-        DELETE FROM channel_db
-        WHERE guild_id = %s
-        AND channel_key = %s
-    """, (
-        guild_id,
-        channel_key
-    ))
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
 
-    conn.commit()
+            await cursor.execute("""
+                DELETE FROM channel_db
+                WHERE guild_id = %s
+                AND channel_key = %s
+            """, (
+                guild_id,
+                channel_key
+            ))
 
-    cursor.close()
-    conn.close()
+        await conn.commit()
 
-# mendapatkan semua channel game untuk guild tertentu
-def get_game_channels(guild_id: int):
-    conn = get_connection()
 
-    cursor = conn.cursor(dictionary=True)
+# ==================================================
+# game channels
+# ==================================================
+async def get_game_channels(guild_id: int):
+    pool = get_pool()
 
-    cursor.execute("""
-        SELECT channel_key, channel_id
-        FROM channel_db
-        WHERE guild_id = %s
-        AND channel_key IN (
-            'growtopia',
-            'pw',
-            'mlbb',
-            'roblox'
-        )
-    """, (guild_id,))
+    async with pool.acquire() as conn:
+        async with conn.cursor(DictCursor) as cursor:
 
-    rows = cursor.fetchall()
+            await cursor.execute("""
+                SELECT channel_key, channel_id
+                FROM channel_db
+                WHERE guild_id = %s
+                AND channel_key IN (
+                    'growtopia',
+                    'pw',
+                    'mlbb',
+                    'roblox'
+                )
+            """, (guild_id,))
 
-    cursor.close()
-    conn.close()
+            rows = await cursor.fetchall()
 
     return {
         row["channel_key"]: row["channel_id"]

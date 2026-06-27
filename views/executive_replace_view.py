@@ -103,9 +103,11 @@ class ReplaceExecutiveSelect(Select):
             )
 
         except Exception as e:
+            import traceback
+            print(traceback.format_exc())
 
             await interaction.edit_original_response(
-                content=f"Gagal mengganti executive.\n```{e}```",
+                content=f"```{e}```",
                 embed=None,
                 view=None
             )

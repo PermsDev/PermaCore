@@ -16,7 +16,7 @@ async def send_log(
 
     try:
 
-        log_data = get_channel(
+        log_data = await get_channel(
             guild.id,
             "LOG_CHANNEL"
         )

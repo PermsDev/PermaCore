@@ -1,167 +1,194 @@
 # database/intro_manager.py
 
-from database.database import get_connection
+from database.database import get_pool
 
 
 # ======================
 # USER PROFILE
 # ======================
-def get_user_profile(
+
+async def get_user_profile(
     guild_id: int,
     user_id: int
 ):
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    pool = get_pool()
 
-    cursor.execute("""
-        SELECT
-            user_id,
-            guild_id,
-            nickname,
-            joined_at
-        FROM user_db
-        WHERE guild_id = %s
-        AND user_id = %s
-    """, (
-        guild_id,
-        user_id
-    ))
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
 
-    profile = cursor.fetchone()
+            await cursor.execute("""
+                SELECT
+                    user_id,
+                    guild_id,
+                    nickname,
+                    joined_at
+                FROM user_db
+                WHERE guild_id = %s
+                  AND user_id = %s
+            """, (
+                guild_id,
+                user_id
+            ))
 
-    if not profile:
-        cursor.close()
-        conn.close()
-        return {}
+            row = await cursor.fetchone()
 
-    cursor.execute("""
-        SELECT
-            game_key,
-            value,
-            message_id,
-            channel_id
-        FROM intro_db
-        WHERE guild_id = %s
-        AND user_id = %s
-    """, (
-        guild_id,
-        user_id
-    ))
+            if row is None:
+                return {}
 
-    intros = cursor.fetchall()
+            profile = {
+                "user_id": row[0],
+                "guild_id": row[1],
+                "nickname": row[2],
+                "joined_at": row[3],
+                "games": {}
+            }
 
-    profile["games"] = {}
+            await cursor.execute("""
+                SELECT
+                    game_key,
+                    value,
+                    message_id,
+                    channel_id
+                FROM intro_db
+                WHERE guild_id = %s
+                  AND user_id = %s
+            """, (
+                guild_id,
+                user_id
+            ))
 
-    for intro in intros:
+            rows = await cursor.fetchall()
 
-        profile["games"][intro["game_key"]] = {
-            "value": intro["value"],
-            "message_id": intro["message_id"],
-            "channel_id": intro["channel_id"]
-        }
+            for intro in rows:
+                profile["games"][intro[0]] = {
+                    "value": intro[1],
+                    "message_id": intro[2],
+                    "channel_id": intro[3]
+                }
 
-    cursor.close()
-    conn.close()
+            return profile
 
-    return profile
 
-def save_user_profile(
+async def save_user_profile(
     guild_id: int,
     user_id: int,
     nickname: str,
     joined_at
 ):
-    conn = get_connection()
-    cursor = conn.cursor()
+    pool = get_pool()
 
-    cursor.execute("""
-        INSERT INTO user_db (
-            user_id,
-            guild_id,
-            nickname,
-            joined_at
-        )
-        VALUES (%s, %s, %s, %s)
-        ON DUPLICATE KEY UPDATE
-            nickname = VALUES(nickname),
-            joined_at = VALUES(joined_at)
-    """, (
-        user_id,
-        guild_id,
-        nickname,
-        joined_at
-    ))
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
 
-    conn.commit()
+            await cursor.execute("""
+                INSERT INTO user_db (
+                    user_id,
+                    guild_id,
+                    nickname,
+                    joined_at
+                )
+                VALUES (%s,%s,%s,%s)
+                ON DUPLICATE KEY UPDATE
+                    nickname=VALUES(nickname),
+                    joined_at=VALUES(joined_at)
+            """, (
+                user_id,
+                guild_id,
+                nickname,
+                joined_at
+            ))
 
-    cursor.close()
-    conn.close()
+            await conn.commit()
 
 
 # ======================
 # INTRO DATA
 # ======================
 
-def get_user_intro(
+async def get_user_intro(
     guild_id: int,
     user_id: int
 ):
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    pool = get_pool()
 
-    cursor.execute("""
-        SELECT
-            user_id,
-            guild_id,
-            game_key,
-            value,
-            message_id,
-            channel_id
-        FROM intro_db
-        WHERE guild_id = %s
-        AND user_id = %s
-    """, (
-        guild_id,
-        user_id
-    ))
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
 
-    result = cursor.fetchall()
+            await cursor.execute("""
+                SELECT
+                    user_id,
+                    guild_id,
+                    game_key,
+                    value,
+                    message_id,
+                    channel_id
+                FROM intro_db
+                WHERE guild_id=%s
+                  AND user_id=%s
+            """, (
+                guild_id,
+                user_id
+            ))
 
-    cursor.close()
-    conn.close()
+            rows = await cursor.fetchall()
 
-    return result
+            return [
+                {
+                    "user_id": r[0],
+                    "guild_id": r[1],
+                    "game_key": r[2],
+                    "value": r[3],
+                    "message_id": r[4],
+                    "channel_id": r[5]
+                }
+                for r in rows
+            ]
 
 
-def get_game_intro(
+async def get_game_intro(
     guild_id: int,
     user_id: int,
     game_key: str
 ):
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+    pool = get_pool()
 
-    cursor.execute("""
-        SELECT *
-        FROM intro_db
-        WHERE guild_id = %s
-        AND user_id = %s
-        AND game_key = %s
-    """, (
-        guild_id,
-        user_id,
-        game_key
-    ))
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
 
-    result = cursor.fetchone()
+            await cursor.execute("""
+                SELECT
+                    user_id,
+                    guild_id,
+                    game_key,
+                    value,
+                    message_id,
+                    channel_id
+                FROM intro_db
+                WHERE guild_id=%s
+                  AND user_id=%s
+                  AND game_key=%s
+            """, (
+                guild_id,
+                user_id,
+                game_key
+            ))
 
-    cursor.close()
-    conn.close()
+            row = await cursor.fetchone()
 
-    return result
+            if row is None:
+                return None
+
+            return {
+                "user_id": row[0],
+                "guild_id": row[1],
+                "game_key": row[2],
+                "value": row[3],
+                "message_id": row[4],
+                "channel_id": row[5]
+            }
 
 
-def save_intro(
+async def save_intro(
     guild_id: int,
     user_id: int,
     game_key: str,
@@ -169,143 +196,164 @@ def save_intro(
     message_id: int,
     channel_id: int
 ):
-    conn = get_connection()
-    cursor = conn.cursor()
+    pool = get_pool()
 
-    cursor.execute("""
-        INSERT INTO intro_db (
-            user_id,
-            guild_id,
-            game_key,
-            value,
-            message_id,
-            channel_id
-        )
-        VALUES (%s, %s, %s, %s, %s, %s)
-        ON DUPLICATE KEY UPDATE
-            value = VALUES(value),
-            message_id = VALUES(message_id),
-            channel_id = VALUES(channel_id)
-    """, (
-        user_id,
-        guild_id,
-        game_key,
-        value,
-        message_id,
-        channel_id
-    ))
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
 
-    conn.commit()
+            await cursor.execute("""
+                INSERT INTO intro_db(
+                    user_id,
+                    guild_id,
+                    game_key,
+                    value,
+                    message_id,
+                    channel_id
+                )
+                VALUES(%s,%s,%s,%s,%s,%s)
+                ON DUPLICATE KEY UPDATE
+                    value=VALUES(value),
+                    message_id=VALUES(message_id),
+                    channel_id=VALUES(channel_id)
+            """, (
+                user_id,
+                guild_id,
+                game_key,
+                value,
+                message_id,
+                channel_id
+            ))
 
-    cursor.close()
-    conn.close()
+            await conn.commit()
 
 
-def delete_intro(
+async def delete_intro(
     guild_id: int,
     user_id: int,
     game_key: str
 ):
-    conn = get_connection()
-    cursor = conn.cursor()
+    pool = get_pool()
 
-    cursor.execute("""
-        DELETE FROM intro_db
-        WHERE guild_id = %s
-        AND user_id = %s
-        AND game_key = %s
-    """, (
-        guild_id,
-        user_id,
-        game_key
-    ))
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
 
-    conn.commit()
+            await cursor.execute("""
+                DELETE FROM intro_db
+                WHERE guild_id=%s
+                  AND user_id=%s
+                  AND game_key=%s
+            """, (
+                guild_id,
+                user_id,
+                game_key
+            ))
 
-    cursor.close()
-    conn.close()
+            await conn.commit()
 
-def delete_all_user_intro(
+
+async def delete_all_user_intro(
     guild_id: int,
     user_id: int
 ):
-    conn = get_connection()
-    cursor = conn.cursor()
+    pool = get_pool()
 
-    cursor.execute("""
-        DELETE FROM intro_db
-        WHERE guild_id = %s
-        AND user_id = %s
-    """, (
-        guild_id,
-        user_id
-    ))
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
 
-    conn.commit()
+            await cursor.execute("""
+                DELETE FROM intro_db
+                WHERE guild_id=%s
+                  AND user_id=%s
+            """, (
+                guild_id,
+                user_id
+            ))
 
-    cursor.close()
-    conn.close()
+            await conn.commit()
 
-def delete_user_profile(
+
+async def delete_user_profile(
     guild_id: int,
     user_id: int
 ):
-    conn = get_connection()
-    cursor = conn.cursor()
+    pool = get_pool()
 
-    cursor.execute("""
-        DELETE FROM user_db
-        WHERE guild_id = %s
-        AND user_id = %s
-    """, (
-        guild_id,
-        user_id
-    ))
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
 
-    conn.commit()
+            await cursor.execute("""
+                DELETE FROM user_db
+                WHERE guild_id=%s
+                  AND user_id=%s
+            """, (
+                guild_id,
+                user_id
+            ))
 
-    cursor.close()
-    conn.close()
+            await conn.commit()
+
 
 # ======================
 # BULK LOAD
 # ======================
 
-def get_all_intro():
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+async def get_all_intro():
+    pool = get_pool()
 
-    cursor.execute("""
-        SELECT *
-        FROM intro_db
-    """)
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
 
-    result = cursor.fetchall()
+            await cursor.execute("""
+                SELECT
+                    user_id,
+                    guild_id,
+                    game_key,
+                    value,
+                    message_id,
+                    channel_id
+                FROM intro_db
+            """)
 
-    cursor.close()
-    conn.close()
+            rows = await cursor.fetchall()
 
-    return result
+            return [
+                {
+                    "user_id": r[0],
+                    "guild_id": r[1],
+                    "game_key": r[2],
+                    "value": r[3],
+                    "message_id": r[4],
+                    "channel_id": r[5]
+                }
+                for r in rows
+            ]
 
-def get_copyview_intros():
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
 
-    cursor.execute("""
-        SELECT
-            user_id,
-            game_key,
-            message_id
-        FROM intro_db
-        WHERE game_key IN (
-            'mlbb',
-            'roblox'
-        )
-    """)
+async def get_copyview_intros():
+    pool = get_pool()
 
-    result = cursor.fetchall()
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
 
-    cursor.close()
-    conn.close()
+            await cursor.execute("""
+                SELECT
+                    user_id,
+                    game_key,
+                    message_id
+                FROM intro_db
+                WHERE game_key IN (
+                    'mlbb',
+                    'roblox'
+                )
+            """)
 
-    return result
+            rows = await cursor.fetchall()
+
+            return [
+                {
+                    "user_id": r[0],
+                    "game_key": r[1],
+                    "message_id": r[2]
+                }
+                for r in rows
+            ]

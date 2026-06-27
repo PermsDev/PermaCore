@@ -1,114 +1,158 @@
-# database/dm_message_manager.py
+from database.database import get_pool
+from asyncmy.cursors import DictCursor
 
-from database.database import get_connection
-
-# =========================
+# ==================================================
 # GET DM MESSAGE
-# =========================
-def get_dm_message(guild_id: int, user_id: int, dm_type: str) -> int | None:
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+# ==================================================
+async def get_dm_message(
+    guild_id: int,
+    user_id: int,
+    dm_type: str
+) -> int | None:
 
-    try:
-        cursor.execute("""
-            SELECT message_id
-            FROM dm_message_db
-            WHERE guild_id = %s
-                AND user_id = %s
-                AND dm_type = %s
-            LIMIT 1
-        """, (guild_id, user_id, dm_type))
+    pool = get_pool()
 
-        row = cursor.fetchone()
-        return row["message_id"] if row else None
+    async with pool.acquire() as conn:
+        async with conn.cursor(DictCursor) as cursor:
 
-    finally:
-        cursor.close()
-        conn.close()
+            await cursor.execute("""
+                SELECT message_id
+                FROM dm_message_db
+                WHERE guild_id = %s
+                    AND user_id = %s
+                    AND dm_type = %s
+                LIMIT 1
+            """, (
+                guild_id,
+                user_id,
+                dm_type
+            ))
+
+            row = await cursor.fetchone()
+
+    return row["message_id"] if row else None
 
 
-# =========================
+# ==================================================
 # UPSERT DM MESSAGE
-# =========================
-def upsert_dm_message(guild_id: int, user_id: int, dm_type: str, message_id: int):
-    conn = get_connection()
-    cursor = conn.cursor()
+# ==================================================
+async def upsert_dm_message(
+    guild_id: int,
+    user_id: int,
+    dm_type: str,
+    message_id: int
+):
 
-    try:
-        cursor.execute("""
-            INSERT INTO dm_message_db (guild_id, user_id, dm_type, message_id)
-            VALUES (%s, %s, %s, %s)
-            ON DUPLICATE KEY UPDATE
-                message_id = VALUES(message_id)
-        """, (guild_id, user_id, dm_type, message_id))
+    pool = get_pool()
 
-        conn.commit()
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
 
-    finally:
-        cursor.close()
-        conn.close()
+            await cursor.execute("""
+                INSERT INTO dm_message_db (
+                    guild_id,
+                    user_id,
+                    dm_type,
+                    message_id
+                )
+                VALUES (%s, %s, %s, %s)
 
-# =========================
+                ON DUPLICATE KEY UPDATE
+                    message_id = VALUES(message_id)
+            """, (
+                guild_id,
+                user_id,
+                dm_type,
+                message_id
+            ))
+
+        await conn.commit()
+
+
+# ==================================================
 # DELETE DM MESSAGE
-# =========================
-def delete_dm_message(guild_id: int, user_id: int, dm_type: str):
-    conn = get_connection()
-    cursor = conn.cursor()
+# ==================================================
+async def delete_dm_message(
+    guild_id: int,
+    user_id: int,
+    dm_type: str
+):
 
-    try:
-        cursor.execute("""
-            DELETE FROM dm_message_db
-            WHERE guild_id = %s
-                AND user_id = %s
-                AND dm_type = %s
-        """, (guild_id, user_id, dm_type))
+    pool = get_pool()
 
-        conn.commit()
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
 
-    finally:
-        cursor.close()
-        conn.close()
+            await cursor.execute("""
+                DELETE FROM dm_message_db
+                WHERE guild_id = %s
+                    AND user_id = %s
+                    AND dm_type = %s
+            """, (
+                guild_id,
+                user_id,
+                dm_type
+            ))
+
+        await conn.commit()
 
 
-# =========================
+# ==================================================
 # CHECK EXISTS
-# =========================
-def dm_message_exists(guild_id: int, user_id: int, dm_type: str) -> bool:
-    conn = get_connection()
-    cursor = conn.cursor()
+# ==================================================
+async def dm_message_exists(
+    guild_id: int,
+    user_id: int,
+    dm_type: str
+) -> bool:
 
-    try:
-        cursor.execute("""
-            SELECT 1
-            FROM dm_message_db
-            WHERE guild_id = %s
-                AND user_id = %s
-                AND dm_type = %s
-            LIMIT 1
-        """, (guild_id, user_id, dm_type))
+    pool = get_pool()
 
-        return cursor.fetchone() is not None
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
 
-    finally:
-        cursor.close()
-        conn.close()
+            await cursor.execute("""
+                SELECT 1
+                FROM dm_message_db
+                WHERE guild_id = %s
+                    AND user_id = %s
+                    AND dm_type = %s
+                LIMIT 1
+            """, (
+                guild_id,
+                user_id,
+                dm_type
+            ))
 
-# ========================
-# GET ALL DM MESSAGES FOR GUILD (for checker)
-# ========================
-def get_all_dm_messages(guild_id: int):
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
+            row = await cursor.fetchone()
 
-    cursor.execute("""
-        SELECT guild_id, user_id, dm_type, message_id
-        FROM dm_message_db
-        WHERE guild_id = %s
-    """, (guild_id,))
+    return row is not None
 
-    rows = cursor.fetchall()
 
-    cursor.close()
-    conn.close()
+# ==================================================
+# GET ALL DM MESSAGES
+# ==================================================
+async def get_all_dm_messages(
+    guild_id: int
+):
+
+    pool = get_pool()
+
+    async with pool.acquire() as conn:
+        async with conn.cursor(DictCursor) as cursor:
+
+            await cursor.execute("""
+                SELECT
+                    guild_id,
+                    user_id,
+                    dm_type,
+                    message_id
+                FROM dm_message_db
+                WHERE guild_id = %s
+            """, (
+                guild_id,
+            ))
+
+            rows = await cursor.fetchall()
 
     return rows

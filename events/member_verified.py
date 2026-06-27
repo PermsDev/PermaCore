@@ -20,7 +20,7 @@ async def handle_verified(member: discord.Member):
     # =========================
     # LOAD ROLE CONFIG FROM DB
     # =========================
-    roles = get_roles(guild_id)
+    roles = await get_roles(guild_id)
 
     verified_group = roles.get("by_group", {}).get("verified", {})
     pangkat_group = roles.get("by_group", {}).get("pangkat", {})
@@ -59,7 +59,7 @@ async def handle_verified(member: discord.Member):
         # =========================
         # DELETE "JOINED" DM
         # =========================
-        joined_dm_id = get_dm_message(
+        joined_dm_id = await get_dm_message(
             guild_id,
             user_id,
             "joined"
@@ -74,7 +74,7 @@ async def handle_verified(member: discord.Member):
             except Exception as e:
                 print(f"[VERIFIED] failed delete joined DM: {e}")
 
-            delete_dm_message(
+            await delete_dm_message(
                 guild_id,
                 user_id,
                 "joined"
@@ -83,7 +83,7 @@ async def handle_verified(member: discord.Member):
         # =========================
         # SEND WELCOME DM (ANTI DUPLICATE)
         # =========================
-        existing_welcome = get_dm_message(
+        existing_welcome = await get_dm_message(
             guild_id,
             user_id,
             "welcome"
@@ -101,7 +101,7 @@ async def handle_verified(member: discord.Member):
 
             new_msg = await dm_channel.send(welcome_text)
 
-            upsert_dm_message(
+            await upsert_dm_message(
                 guild_id,
                 user_id,
                 "welcome",

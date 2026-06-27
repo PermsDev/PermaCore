@@ -19,7 +19,7 @@ async def handle_member_join(member: discord.Member):
     # ======================
     # ENSURE USER EXISTS (WAJIB UNTUK FK)
     # ======================
-    ensure_user_exists(guild_id, user_id)
+    await ensure_user_exists(guild_id, user_id)
 
     # ======================
     # GET DM CHANNEL
@@ -73,10 +73,10 @@ async def handle_member_join(member: discord.Member):
         # ======================
 
         # ✔ hapus DM hanya untuk guild ini + user ini + type joined
-        delete_dm_message(guild_id, user_id, "joined")
+        await delete_dm_message(guild_id, user_id, "joined")
 
         # ✔ simpan DM baru untuk guild ini saja
-        upsert_dm_message(
+        await upsert_dm_message(
             guild_id,
             user_id,
             "joined",

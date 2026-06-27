@@ -48,7 +48,7 @@ class CopyButton(discord.ui.Button):
 
         guild_id = interaction.guild.id
 
-        user_data = get_user_profile(int(guild_id), int(target_user_id))
+        user_data = await get_user_profile(int(guild_id), int(target_user_id))
 
         game_data = user_data.get("games", {}).get(game_key, {})
         value = game_data.get("value")
@@ -146,7 +146,7 @@ class IntroModal(discord.ui.Modal):
         guild_id = interaction.guild.id
         user_id = interaction.user.id
         
-        roles = get_roles(
+        roles = await get_roles(
             int(guild_id)
         ) or {}
 
@@ -158,7 +158,7 @@ class IntroModal(discord.ui.Modal):
         )
 
         NO_RENAME_ROLES = (
-            get_no_rename_roles(
+            await get_no_rename_roles(
                 int(guild_id)
             ) or []
         )
@@ -166,7 +166,7 @@ class IntroModal(discord.ui.Modal):
         # ======================
         # DATA LAMA
         # ======================
-        old_user_data = get_user_profile(
+        old_user_data = await get_user_profile(
             interaction.guild.id,
             interaction.user.id
         ) or {}
@@ -326,7 +326,7 @@ class IntroModal(discord.ui.Modal):
             if old_value == new_value and not nickname_changed:
                 continue
 
-            GAME_CHANNELS = get_game_channels(interaction.guild.id)
+            GAME_CHANNELS = await get_game_channels(interaction.guild.id)
 
             channel_id = GAME_CHANNELS.get(game_key)
 
@@ -360,14 +360,14 @@ class IntroModal(discord.ui.Modal):
                             )
 
                             await old_msg.delete()
-                            delete_intro(
+                            await delete_intro(
                                 interaction.guild.id,
                                 interaction.user.id,
                                 game_key
                             )
 
                         except discord.NotFound:
-                            delete_intro(
+                            await delete_intro(
                                 interaction.guild.id,
                                 interaction.user.id,
                                 game_key
@@ -550,7 +550,7 @@ class IntroModal(discord.ui.Modal):
 
         try:
 
-            save_user_profile(
+            await save_user_profile(
                 guild_id=interaction.guild.id,
                 user_id=interaction.user.id,
                 nickname=self.nickname.value.strip(),
@@ -559,7 +559,7 @@ class IntroModal(discord.ui.Modal):
 
             for game_key, data in message_results.items():
 
-                save_intro(
+                await save_intro(
                     guild_id=interaction.guild.id,
                     user_id=interaction.user.id,
                     game_key=game_key,
@@ -750,7 +750,7 @@ class IntroButton(discord.ui.View):
         guild_id = interaction.guild.id
         user_id = interaction.user.id
 
-        user_data = get_user_profile(
+        user_data = await get_user_profile(
             guild_id,
             user_id
         )
@@ -762,7 +762,7 @@ class IntroButton(discord.ui.View):
 # ======================
 async def register_persistent_views(bot):
 
-    intros = get_copyview_intros()
+    intros = await get_copyview_intros()
 
     for intro in intros:
 

@@ -16,8 +16,8 @@ from database.dm_message_manager import (
 # =========================
 # ROLE LOADER (FROM DB)
 # =========================
-def get_executive_roles(guild_id: int):
-    roles = get_roles(guild_id)
+async def get_executive_roles(guild_id: int):
+    roles = await get_roles(guild_id)
     return roles.get("by_group", {}).get("executive", {})
 
 # =========================
@@ -46,13 +46,13 @@ EXECUTIVE_CONFIG = {
 # GET USER INTRO DATA
 # =========================
 async def get_user_intro_data(guild_id: int, user_id: int):
-    return get_user_profile(guild_id, user_id)
+    return await get_user_profile(guild_id, user_id)
 
 # =========================
 # RESOLVE ROLE (IMPORTANT)
 # =========================
-def resolve_executive_role(guild_id: int, executive_type: str):
-    exec_roles = get_executive_roles(guild_id)
+async def resolve_executive_role(guild_id: int, executive_type: str):
+    exec_roles = await get_executive_roles(guild_id)
     config = EXECUTIVE_CONFIG.get(executive_type)
 
     if not config:
@@ -66,7 +66,7 @@ def resolve_executive_role(guild_id: int, executive_type: str):
 # =========================
 async def apply_executive(member: discord.Member, role: discord.Role, new_nickname: str):
     
-    exec_roles = get_executive_roles(member.guild.id)
+    exec_roles = await get_executive_roles(member.guild.id)
 
     # remove semua role executive lama
     for role_id in exec_roles.values():
@@ -106,7 +106,7 @@ async def refresh_executive_dm(
     # =========================
     # HAPUS DM LAMA (MYSQL)
     # =========================
-    old_dm_id = get_dm_message(guild.id, member.id, "executive")
+    old_dm_id = await get_dm_message(guild.id, member.id, "executive")
 
     if old_dm_id:
         try:
@@ -137,7 +137,7 @@ async def refresh_executive_dm(
             view=ExecutiveInfoView(executive_type=executive_type)
         )
 
-        upsert_dm_message(
+        await upsert_dm_message(
             guild.id,
             member.id,
             "executive",
@@ -166,7 +166,7 @@ async def add_executive_role(
     executive_type: str
 ):
 
-    role_id, config = resolve_executive_role(
+    role_id, config = await resolve_executive_role(
         interaction.guild.id, 
         executive_type
     )
@@ -188,7 +188,7 @@ async def add_executive_role(
         return
 
     # cek executive lama
-    exec_roles = get_executive_roles(interaction.guild.id)
+    exec_roles = await get_executive_roles(interaction.guild.id)
     has_executive = False
 
     for rid in exec_roles.values():
@@ -276,7 +276,7 @@ async def remove_executive_role(
     member: discord.Member
 ):
 
-    exec_roles = get_executive_roles(interaction.guild.id)
+    exec_roles = await get_executive_roles(interaction.guild.id)
     removed = []
 
     try:
@@ -298,7 +298,7 @@ async def remove_executive_role(
                 except discord.Forbidden:
                     pass
 
-        old_dm_id = get_dm_message(interaction.guild.id, member.id, "executive")
+        old_dm_id = await get_dm_message(interaction.guild.id, member.id, "executive")
 
         if old_dm_id:
             try:
@@ -308,7 +308,7 @@ async def remove_executive_role(
             except:
                 pass
 
-            delete_dm_message(interaction.guild.id, member.id, "executive")
+            await delete_dm_message(interaction.guild.id, member.id, "executive")
 
         await interaction.followup.send(
             embed=discord.Embed(

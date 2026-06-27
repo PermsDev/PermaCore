@@ -32,7 +32,7 @@ async def update_welcome_service(
     # =========================
     # LOAD ROLES FROM DB
     # =========================
-    role_groups = get_roles(guild.id)
+    role_groups = await get_roles(guild.id)
 
     pangkat_roles = set(
         role_groups.get("pangkat", {}).values()
