@@ -15,25 +15,39 @@ async def check_channel_messages_db(
     guild: discord.Guild,
     channel_id: int | None = None
 ):
+    print("=" * 60)
+    print("[Check] Loading database...")
 
-    db_channels = get_channels(guild.id)
+    db_channels = await get_channels(guild.id)
 
-    guild_messages = get_all_guild_messages(guild.id)
-    delete_queue = get_delete_queue()
-    feedbacks = get_guild_feedbacks(guild.id)
-    intros = get_all_intro()
+    guild_messages = await get_all_guild_messages(guild.id)
+    delete_queue = await get_delete_queue()
+    feedbacks = await get_guild_feedbacks(guild.id)
+    intros = await get_all_intro()
+
+    print(
+        f"[Check] DB Loaded | "
+        f"Channels={len(db_channels)} | "
+        f"Guild={len(guild_messages)} | "
+        f"DeleteQueue={len(delete_queue)} | "
+        f"Feedback={len(feedbacks)} | "
+        f"Intro={len(intros)}"
+    )
 
     # =========================
-    # ALL DATABASE INDEX
+    # BUILD DATABASE INDEX
     # =========================
     all_db = []
 
     for m in guild_messages:
         all_db.append(("guild_message_db", m))
+
     for m in delete_queue:
         all_db.append(("delete_queue_db", m))
+
     for m in feedbacks:
         all_db.append(("feedback_db", m))
+
     for m in intros:
         all_db.append(("intro_db", m))
 
@@ -45,48 +59,55 @@ async def check_channel_messages_db(
             "channel_id": m["channel_id"]
         })
 
+    print(f"[Check] Indexed {len(db_index)} messages.")
+
     # =========================
-    # CHANNEL FILTER (EXCLUDE LOG)
+    # CHANNEL FILTER
     # =========================
     unique_channels = set()
     important_messages = set()
 
     for key, data in db_channels.items():
 
-        # skip log channel
         if key == "LOG_CHANNEL":
             continue
 
-        ch_id = data["channel_id"]
-        panel_msg = data.get("panel_message")
+        unique_channels.add(data["channel_id"])
 
-        unique_channels.add(ch_id)
+        if data.get("panel_message"):
+            important_messages.add(int(data["panel_message"]))
 
-        # panel message juga dianggap penting
-        if panel_msg:
-            important_messages.add(int(panel_msg))
+    print(f"[Check] Total channels to scan : {len(unique_channels)}")
 
     # =========================
-    # RESULT CONTAINER
+    # RESULT
     # =========================
     missing = {
         "channel_message_db": []
     }
 
     # =========================
-    # SCAN CHANNELS
+    # SCAN CHANNEL
     # =========================
     for ch_id in unique_channels:
 
-        # optional filter
         if channel_id and ch_id != channel_id:
             continue
 
         channel = guild.get_channel(ch_id)
-        if not channel:
+
+        if channel is None:
+            print(f"[Skip] Unknown Channel ({ch_id})")
             continue
 
+        print()
+        print("=" * 60)
+        print(f"[Channel] #{channel.name}")
+
+        checked = 0
+
         try:
+
             async for msg in channel.history(limit=200):
 
                 if bot.user is None:
@@ -95,41 +116,83 @@ async def check_channel_messages_db(
                 if msg.author.id != bot.user.id:
                     continue
 
+                checked += 1
+
                 msg_id = str(msg.id)
 
-                # =========================
-                # PANEL MESSAGE SKIP RULE
-                # =========================
-                is_panel = msg.id in important_messages
+                print(f"[Discord] Message {msg.id}")
 
                 # =========================
-                # NOT IN ANY DB
+                # PANEL MESSAGE
                 # =========================
-                if msg_id not in db_index and not is_panel:
+                if msg.id in important_messages:
+
+                    print("   ↳ PANEL MESSAGE (skip)")
+                    continue
+
+                # =========================
+                # NOT FOUND
+                # =========================
+                if msg_id not in db_index:
+
+                    print("   ↳ ❌ NOT FOUND IN DATABASE")
+
                     missing["channel_message_db"].append({
                         "channel": ch_id,
                         "message_id": msg.id,
                         "reason": "NOT_IN_ANY_DB"
                     })
+
                     continue
 
-                # =========================
-                # CHANNEL MISMATCH CHECK
-                # =========================
-                if msg_id in db_index:
+                print(f"   ↳ ✅ FOUND ({len(db_index[msg_id])} entry)")
 
-                    for entry in db_index[msg_id]:
-                        if entry["channel_id"] != ch_id:
+                mismatch = False
 
-                            missing["channel_message_db"].append({
-                                "channel": ch_id,
-                                "message_id": msg.id,
-                                "reason": "CHANNEL_MISMATCH"
-                            })
-                            break
+                for entry in db_index[msg_id]:
 
-        except Exception:
-            continue
+                    db_channel = entry["channel_id"]
+
+                    print(
+                        f"      DB={entry['db']} | "
+                        f"Channel={db_channel}"
+                    )
+
+                    if db_channel != ch_id:
+
+                        mismatch = True
+
+                        print(
+                            f"      ❌ CHANNEL MISMATCH "
+                            f"(Discord={ch_id})"
+                        )
+
+                        missing["channel_message_db"].append({
+                            "channel": ch_id,
+                            "message_id": msg.id,
+                            "reason": "CHANNEL_MISMATCH"
+                        })
+
+                if not mismatch:
+                    print("      ✅ CHANNEL MATCH")
+
+            print(
+                f"[Done] #{channel.name} "
+                f"({checked} bot messages checked)"
+            )
+
+        except Exception as e:
+
+            print(f"[ERROR] #{channel.name}")
+            print(e)
+
+    print()
+    print("=" * 60)
+    print(
+        f"[Check Finished] "
+        f"Total Issues = {len(missing['channel_message_db'])}"
+    )
+    print("=" * 60)
 
     return missing
 
@@ -147,13 +210,13 @@ class ChannelCheckView(discord.ui.View):
 
         self.page = 0
         self.per_page = 10
-
         self.max_page = max(0, (len(data) - 1) // self.per_page)
 
     def build_embed(self):
 
         start = self.page * self.per_page
         end = start + self.per_page
+
         chunk = self.data[start:end]
 
         embed = discord.Embed(
@@ -172,24 +235,21 @@ class ChannelCheckView(discord.ui.View):
 
         for i, m in enumerate(chunk, start=1):
 
-            channel_mention = f"<#{m['channel']}>"
-            msg_link = f"https://discord.com/channels/{self.guild.id}/{m['channel']}/{m['message_id']}"
-
             lines.append(
-                f"{start + i}. {channel_mention} → [Jump to Message]({msg_link})"
+                f"{start+i}. "
+                f"<#{m['channel']}> → "
+                f"https://discord.com/channels/"
+                f"{self.guild.id}/{m['channel']}/{m['message_id']}"
             )
 
         embed.description = "\n".join(lines)
 
         embed.set_footer(
-            text=f"Page {self.page + 1}/{self.max_page + 1} • Total: {len(self.data)}"
+            text=f"Page {self.page+1}/{self.max_page+1} • Total {len(self.data)}"
         )
 
         return embed
 
-    # =========================
-    # BUTTON PREV
-    # =========================
     @discord.ui.button(label="⬅", style=discord.ButtonStyle.secondary)
     async def prev(self, interaction: discord.Interaction, button: discord.ui.Button):
 
@@ -201,9 +261,6 @@ class ChannelCheckView(discord.ui.View):
             view=self
         )
 
-    # =========================
-    # BUTTON NEXT
-    # =========================
     @discord.ui.button(label="➡", style=discord.ButtonStyle.secondary)
     async def next(self, interaction: discord.Interaction, button: discord.ui.Button):
 

@@ -95,6 +95,7 @@ class CheckGroup(commands.Cog):
         app_commands.Choice(name="Feedback Messages", value="feedback_db"),
         app_commands.Choice(name="Guild Messages", value="guild_message_db"),
         app_commands.Choice(name="Intro Messages", value="intro_db"),
+        app_commands.Choice(name="Channel Panel", value="channel_db"),
     ])
     async def message_db(
         self,
