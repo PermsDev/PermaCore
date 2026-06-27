@@ -5,11 +5,17 @@ from discord.ext import commands
 
 from core.loader import (
     load_public_cogs,
-    load_main_cogs
+    unload_public_cogs,
+    load_main_cogs,
+    unload_main_cogs,
+    load_partner_growtopia_cogs,
+    unload_partner_growtopia_cogs
 )
+
 from core.sync import (
     sync_public_commands,
-    sync_main_commands
+    sync_main_commands,
+    sync_partner_growtopia_commands
 )
 
 from utils.delete_scheduler import delete_checker
@@ -18,6 +24,7 @@ from views.intro import IntroButton, register_persistent_views
 from views.feedback import FeedbackButton, ReplyView
 from views.executive_info_view import ExecutiveInfoView
 
+from database.database import init_database
 from database.emoji_manager import load_emojis
 from database.feedback_manager import get_pending_feedbacks
 from database.role_manager import (
@@ -42,11 +49,10 @@ from events.member_role_update import (
 # LOAD ENV
 # ======================
 load_dotenv()
-
 TOKEN = os.getenv("TOKEN")
 
 # ======================
-# DISCORD INTENTS
+# INTENTS
 # ======================
 intents = discord.Intents.default()
 intents.members = True
@@ -59,18 +65,38 @@ intents.message_content = True
 class MyBot(commands.Bot):
 
     async def setup_hook(self):
-        
-        # ======================
-        # LOAD COGS
-        # ======================
-        await load_public_cogs(self)
-        await sync_public_commands(self)
-        
-        await load_main_cogs(self)
-        await sync_main_commands(self)        
 
         # ======================
-        # REGISTER PERSISTENT VIEWS
+        # INIT DATABASE (ASYNCMY)
+        # ======================
+        await init_database()
+
+        # ======================
+        # SYNC
+        # ======================
+
+        # await load_public_cogs(self)
+        # await sync_public_commands(self)
+        # await unload_public_cogs(self)
+
+        # await load_main_cogs(self)
+        # await sync_main_commands(self)
+        # await unload_main_cogs(self)
+
+        # await load_partner_growtopia_cogs(self)
+        # await sync_partner_growtopia_commands(self)
+        # await unload_partner_growtopia_cogs(self)
+
+        # ======================
+        # LOAD UNTUK RUNTIME
+        # ======================
+
+        await load_public_cogs(self)
+        await load_main_cogs(self)
+        await load_partner_growtopia_cogs(self)
+
+        # ======================
+        # PERSISTENT VIEWS
         # ======================
         self.add_view(IntroButton())
         self.add_view(FeedbackButton())
@@ -82,15 +108,16 @@ class MyBot(commands.Bot):
         await register_persistent_views(self)
 
         # ======================
-        # RESTORE FEEDBACK BUTTONS
+        # RESTORE VIEWS
         # ======================
-        pending_feedbacks = get_pending_feedbacks()
+        pending_feedbacks = await get_pending_feedbacks()
 
         for feedback in pending_feedbacks:
             self.add_view(
                 ReplyView(),
                 message_id=feedback["message_id"]
             )
+
 
 # ======================
 # BOT INSTANCE
@@ -102,20 +129,18 @@ bot = MyBot(
 
 
 # ======================
-# BOT READY
+# ON READY
 # ======================
 @bot.event
 async def on_ready():
 
-    load_emojis()
+    await load_emojis()
 
-    bot.loop.create_task(
-        delete_checker(bot)
-    )
+    bot.loop.create_task(delete_checker(bot))
 
-    # preload semua guild roles ke cache
+    # preload role cache
     for guild in bot.guilds:
-        load_roles(guild.id)
+        await load_roles(guild.id)
 
     print(f"Bot login sebagai {bot.user}")
 
@@ -163,12 +188,10 @@ async def on_member_update(before, after):
     if before.roles == after.roles:
         return
 
-    role_groups = get_roles(after.guild.id)
+    role_groups = await get_roles(after.guild.id)
     changed_roles = get_changed_roles(before, after)
 
-    # =========================
     # VERIFY CHECK
-    # =========================
     verified_roles = set(
         role_groups["by_group"]["verified"].values()
     )
@@ -176,9 +199,7 @@ async def on_member_update(before, after):
     if changed_roles & verified_roles:
         await handle_verified(after)
 
-    # =========================
     # WELCOME CHECK
-    # =========================
     if has_pangkat(after, role_groups):
 
         if has_role_group_change(before, after, role_groups):
