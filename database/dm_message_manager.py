@@ -103,6 +103,29 @@ async def delete_dm_message(
             await conn.rollback()
             raise
 
+# ==================================================
+# DELETE BY MESSAGE ID
+# ==================================================
+async def delete_dm_message_by_id(
+    message_id: int
+):
+    pool = get_pool()
+
+    async with pool.acquire() as conn:
+        try:
+            async with conn.cursor() as cursor:
+                await cursor.execute("""
+                    DELETE FROM dm_message_db
+                    WHERE message_id = %s
+                """, (
+                    message_id,
+                ))
+
+            await conn.commit()
+
+        except Exception:
+            await conn.rollback()
+            raise
 
 # ==================================================
 # CHECK EXISTS

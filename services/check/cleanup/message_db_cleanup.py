@@ -2,7 +2,7 @@
 
 import asyncio
 
-from database.dm_message_manager import delete_dm_message
+from database.dm_message_manager import delete_dm_message_by_id
 from database.delete_queue_manager import delete_queue_item
 from database.feedback_manager import delete_feedback
 from database.guild_message_manager import delete_guild_message
@@ -29,7 +29,7 @@ async def cleanup_message_db(missing: dict):
     for msg_id in missing.get("dm_message_db", []):
         try:
             print(f"[CLEANUP][DM] deleting message_id={msg_id}")
-            await delete_dm_message(msg_id)
+            await delete_dm_message_by_id(msg_id)
             total_deleted += 1
         except Exception as e:
             print(f"[CLEANUP ERROR][DM] {msg_id} -> {e}")

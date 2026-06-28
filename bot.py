@@ -148,6 +148,8 @@ async def on_member_join(member):
 
     if member.bot:
         return
+    
+    print(f"[JOIN] {member} joined {member.guild.name} ({member.guild.id})")
 
     if not await is_main_guild(member.guild.id):
         return
@@ -160,6 +162,8 @@ async def on_member_remove(member):
 
     if member.bot:
         return
+    
+    print(f"[LEFT] {member} left {member.guild.name} ({member.guild.id})")
 
     if await is_main_guild(member.guild.id):
         await handle_member_main_remove(member)
