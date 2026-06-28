@@ -3,7 +3,7 @@ import traceback
 
 from database.role_manager import get_role_id
 from database.intro_manager import (
-    get_game_intro,
+    get_user_profile,
     save_user_profile,
     save_intro
 )
@@ -50,44 +50,9 @@ class GTIntroductionModal(discord.ui.Modal, title="Growtopia Introduction"):
 
         try:
 
-            # ============================================
-            # CEK APAKAH GROWID BERUBAH
-            # ============================================
-
-            old_intro = await get_game_intro(
-                guild_id=interaction.guild.id,
-                user_id=interaction.user.id,
-                game_key=GAME_KEY
-            )
-
-            growid_changed = (
-                old_intro is None or
-                old_intro["value"] != self.growid.value
-            )
-
-            # ============================================
-            # UPDATE NICKNAME DISCORD (JIKA GROWID BERUBAH)
-            # ============================================
-
-            if growid_changed:
-
-                try:
-                    await interaction.user.edit(
-                        nick=self.growid.value,
-                        reason="Growtopia Introduction Updated"
-                    )
-
-                except discord.Forbidden:
-                    print(
-                        f"[GT Intro] Tidak dapat mengubah nickname {interaction.user}"
-                    )
-
-                except Exception:
-                    traceback.print_exc()
-
-            # ============================================
-            # SIMPAN USER PROFILE
-            # ============================================
+            # ==========================
+            # SAVE USER PROFILE
+            # ==========================
 
             await save_user_profile(
                 guild_id=interaction.guild.id,
@@ -96,9 +61,9 @@ class GTIntroductionModal(discord.ui.Modal, title="Growtopia Introduction"):
                 joined_at=interaction.user.joined_at
             )
 
-            # ============================================
-            # SIMPAN INTRO
-            # ============================================
+            # ==========================
+            # SAVE INTRO
+            # ==========================
 
             await save_intro(
                 guild_id=interaction.guild.id,
@@ -109,9 +74,27 @@ class GTIntroductionModal(discord.ui.Modal, title="Growtopia Introduction"):
                 channel_id=None
             )
 
-            # ============================================
-            # BERIKAN ROLE
-            # ============================================
+            # ==========================
+            # RENAME NICKNAME
+            # ==========================
+
+            try:
+                await interaction.user.edit(
+                    nick=self.growid.value,
+                    reason="Growtopia Introduction"
+                )
+
+            except discord.Forbidden:
+                print(
+                    f"[GT Intro] Tidak bisa mengubah nickname {interaction.user}"
+                )
+
+            except discord.HTTPException:
+                traceback.print_exc()
+
+            # ==========================
+            # ADD ROLE
+            # ==========================
 
             role_id = await get_role_id(
                 interaction.guild.id,
@@ -138,9 +121,9 @@ class GTIntroductionModal(discord.ui.Modal, title="Growtopia Introduction"):
                     except Exception:
                         traceback.print_exc()
 
-            # ============================================
-            # RESPONSE
-            # ============================================
+            # ==========================
+            # SUCCESS EMBED
+            # ==========================
 
             embed = discord.Embed(
                 title="✅ Introduction Berhasil",
@@ -159,19 +142,6 @@ class GTIntroductionModal(discord.ui.Modal, title="Growtopia Introduction"):
                 value=self.growid.value,
                 inline=False
             )
-
-            if growid_changed:
-                embed.add_field(
-                    name="🏷️ Nickname Guild",
-                    value="✅ Berhasil diperbarui.",
-                    inline=False
-                )
-            else:
-                embed.add_field(
-                    name="🏷️ Nickname Guild",
-                    value="Tidak berubah.",
-                    inline=False
-                )
 
             embed.set_footer(
                 text=f"Discord ID : {interaction.user.id}"
@@ -213,8 +183,6 @@ class GTIntroductionView(discord.ui.View):
         print("==================================\n")
 
         try:
-
-            from database.intro_manager import get_user_profile
 
             profile = await get_user_profile(
                 guild_id=interaction.guild.id,
