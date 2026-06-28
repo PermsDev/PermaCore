@@ -2,6 +2,33 @@ from database.database import get_pool
 from asyncmy.cursors import DictCursor
 
 # ==================================================
+# GET USER PROTECTED DM
+# ==================================================
+async def get_user_dm_messages(
+    user_id: int
+) -> set[int]:
+
+    pool = get_pool()
+
+    async with pool.acquire() as conn:
+        async with conn.cursor(DictCursor) as cursor:
+
+            await cursor.execute("""
+                SELECT message_id
+                FROM dm_message_db
+                WHERE user_id = %s
+            """, (
+                user_id,
+            ))
+
+            rows = await cursor.fetchall()
+
+    return {
+        row["message_id"]
+        for row in rows
+    }
+
+# ==================================================
 # GET DM MESSAGE
 # ==================================================
 async def get_dm_message(

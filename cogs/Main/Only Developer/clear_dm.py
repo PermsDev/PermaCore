@@ -1,160 +1,96 @@
 import os
-import asyncio
 import discord
+
 from discord.ext import commands
 from discord import app_commands
 
-from database.dm_message_manager import get_dm_message
-from database.delete_queue_manager import delete_queue_item
-from utils.logger import send_log
+from services.clear_dm.cleaner import clear_dm
+from services.clear_dm.autocomplete import guild_autocomplete
 
 OWNER_ID = int(os.getenv("OWNER_ID"))
-
-# =========================
-# PROTECTED DM TYPES
-# =========================
-PROTECTED_DM_TYPES = {
-    "executive",
-    "welcome",
-    "intro"
-}
 
 class ClearDM(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
 
+    # ==================================================
+    # CLEAR BOT DM
+    # ==================================================
     @app_commands.command(
         name="clearbotdm",
-        description="(Only Developer) Hapus DM bot dari semua user atau target tertentu"
+        description="(Only Developer) Hapus DM bot."
+    )
+    @app_commands.autocomplete(
+        guild=guild_autocomplete
     )
     @app_commands.check(
-        lambda interaction: interaction.user.id == OWNER_ID
+        lambda interaction:
+        interaction.user.id == OWNER_ID
     )
     async def clear_bot_dm(
+
         self,
         interaction: discord.Interaction,
-        user: discord.Member = None,
-        role: discord.Role = None
+
+        guild: str | None = None,
+
+        user: discord.Member | None = None
+
     ):
 
         await interaction.response.send_message(
+
             "Mulai menghapus DM bot...",
+
             ephemeral=True
+
         )
 
-        deleted = 0
-        failed = 0
-        skipped = 0
+        try:
 
-        guild = interaction.guild
+            result = await clear_dm(
 
-        # ======================
-        # TARGET MEMBERS
-        # ======================
-        if user is not None:
-            targets = [user]
+                bot=self.bot,
 
-        elif role is not None:
-            targets = [m for m in role.members if not m.bot]
+                interaction=interaction,
 
-        else:
-            targets = [m for m in guild.members if not m.bot]
+                guild_id=guild,
 
-        # ======================
-        # START CLEANING
-        # ======================
-        for member in targets:
+                user=user
 
-            try:
-                dm = member.dm_channel
+            )
 
-                if dm is None:
-                    dm = await member.create_dm()
+            await interaction.followup.send(
 
-                async for message in dm.history(limit=None):
+                f"✅ Selesai Clear DM\n\n"
 
-                    # hanya pesan bot
-                    if message.author.id != self.bot.user.id:
-                        continue
+                f"Guild : {result['guild'].name}\n"
 
-                    # ======================
-                    # CHECK PROTECTED IDS (MULTI TYPE)
-                    # ======================
-                    is_protected = False
+                f"Target User : {result['targets']}\n"
 
-                    for dm_type in PROTECTED_DM_TYPES:
+                f"Deleted : {result['deleted']}\n"
 
-                        protected_id = await get_dm_message(
-                            guild.id,
-                            member.id,
-                            dm_type
-                        )
+                f"Protected : {result['skipped']}\n"
 
-                        if protected_id and message.id == protected_id:
-                            is_protected = True
-                            break
+                f"Failed : {result['failed']}",
 
-                    if is_protected:
-                        skipped += 1
-                        print(
-                            f"[SKIP PROTECTED] "
-                            f"user={member} msg_id={message.id}"
-                        )
-                        continue
+                ephemeral=True
 
-                    # ======================
-                    # DELETE MESSAGE
-                    # ======================
-                    try:
-                        print(
-                            f"[DELETE] user={member} msg_id={message.id}"
-                        )
+            )
 
-                        await message.delete()
-                        deleted += 1
+        except Exception as e:
 
-                        # ======================
-                        # REMOVE FROM DB QUEUE
-                        # ======================
-                        try:
-                            await delete_queue_item(message.id)
-                        except Exception as e:
-                            print(f"[QUEUE DELETE ERROR] {e}")
+            await interaction.followup.send(
 
-                        await asyncio.sleep(0.5)
+                f"❌ Gagal menjalankan Clear DM\n\n{e}",
 
-                        await asyncio.sleep(0.5)
+                ephemeral=True
 
-                    except discord.NotFound:
-                        # sudah tidak ada
-                        continue
-
-                    except discord.Forbidden:
-                        failed += 1
-                        print(f"[FORBIDDEN] {member}")
-                        break
-
-                    except Exception as e:
-                        failed += 1
-                        print(f"[ERROR DELETE] {e}")
-
-            except Exception as e:
-                failed += 1
-                print(f"[FAILED USER] {member} | {e}")
-
-        # ======================
-        # RESULT
-        # ======================
-        await interaction.followup.send(
-            f"✅ Selesai Clear DM\n\n"
-            f"Target user: {len(targets)}\n"
-            f"Pesan dihapus: {deleted}\n"
-            f"Protected skipped: {skipped}\n"
-            f"Gagal: {failed}",
-            ephemeral=True
-        )
+            )
 
 
 async def setup(bot):
-    await bot.add_cog(ClearDM(bot))
+    await bot.add_cog(
+        ClearDM(bot)
+    )

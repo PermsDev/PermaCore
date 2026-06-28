@@ -1,5 +1,5 @@
 from database.database import get_pool
-
+from asyncmy.cursors import DictCursor
 
 # ==================================================
 # GET ALL GUILD
@@ -18,6 +18,28 @@ async def get_all_guild_ids() -> list[int]:
             rows = await cursor.fetchall()
 
     return [row[0] for row in rows]
+
+# ==================================================
+# GET ALL GUILDS
+# ==================================================
+async def get_all_guilds():
+
+    pool = get_pool()
+
+    async with pool.acquire() as conn:
+        async with conn.cursor(DictCursor) as cursor:
+
+            await cursor.execute("""
+                SELECT
+                    guild_id,
+                    nama_guild
+                FROM guild_db
+                ORDER BY nama_guild
+            """)
+
+            rows = await cursor.fetchall()
+
+    return rows
 
 # ==================================================
 # ADD / UPDATE GUILD
