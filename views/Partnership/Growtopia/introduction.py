@@ -15,7 +15,7 @@ GAME_KEY = "growtopia"
 class GTIntroductionModal(discord.ui.Modal, title="Growtopia Introduction"):
 
     nama = discord.ui.TextInput(
-        label="Nama",
+        label="Nama Panggilan",
         placeholder="Masukkan nama kamu",
         max_length=50
     )
@@ -40,13 +40,6 @@ class GTIntroductionModal(discord.ui.Modal, title="Growtopia Introduction"):
             self.growid.default = growid
 
     async def on_submit(self, interaction: discord.Interaction):
-
-        print("\n========== MODAL SUBMIT ==========")
-        print(f"Guild   : {interaction.guild.id}")
-        print(f"User    : {interaction.user}")
-        print(f"Nama    : {self.nama.value}")
-        print(f"GrowID  : {self.growid.value}")
-        print("==================================\n")
 
         try:
 
@@ -175,12 +168,6 @@ class GTIntroductionView(discord.ui.View):
         interaction: discord.Interaction,
         button: discord.ui.Button
     ):
-
-        print("\n========== BUTTON CLICK ==========")
-        print(f"Guild   : {interaction.guild.id}")
-        print(f"User    : {interaction.user}")
-        print(f"Button  : {button.custom_id}")
-        print("==================================\n")
 
         try:
 

@@ -5,20 +5,10 @@ from discord.ext import commands
 
 from core.loader import (
     load_public_cogs,
-    unload_public_cogs,
     load_main_cogs,
-    unload_main_cogs,
     load_partner_growtopia_cogs,
-    unload_partner_growtopia_cogs
 )
 
-from core.sync import (
-    sync_public_commands,
-    sync_main_commands,
-    sync_partner_growtopia_commands
-)
-
-from database.guild_key_manager import get_guild_ids
 from utils.delete_scheduler import delete_checker
 
 from views.intro import IntroButton, register_persistent_views
@@ -27,6 +17,7 @@ from views.executive_info_view import ExecutiveInfoView
 
 from views.Partnership.Growtopia.introduction import GTIntroductionView
 
+from database.guild_key_manager import get_guild_ids, is_main_guild
 
 from database.database import init_database
 from database.emoji_manager import load_emojis
@@ -40,7 +31,8 @@ from events.guild_join import handle_guild_join
 from events.guild_remove import handle_guild_remove
 
 from events.member_join import handle_member_join
-from events.member_remove import handle_member_remove
+from events.member_main_remove import handle_member_main_remove
+from events.member_remove import handle_member_remove_database
 from events.member_verified import handle_verified
 from events.member_role_update import (
     get_changed_roles,
@@ -157,6 +149,9 @@ async def on_member_join(member):
     if member.bot:
         return
 
+    if not await is_main_guild(member.guild.id):
+        return
+
     await handle_member_join(member)
 
 
@@ -166,7 +161,10 @@ async def on_member_remove(member):
     if member.bot:
         return
 
-    await handle_member_remove(member)
+    if await is_main_guild(member.guild.id):
+        await handle_member_main_remove(member)
+
+    await handle_member_remove_database(member)
 
 
 @bot.event

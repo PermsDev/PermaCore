@@ -28,3 +28,28 @@ async def get_guild_ids(
         row["guild_id"]
         for row in rows
     ]
+    
+# ==================================================
+# CHECK MAIN GUILD
+# ==================================================
+async def is_main_guild(guild_id: int) -> bool:
+    """
+    Mengembalikan True jika guild memiliki guild_key = 'Main'.
+    """
+
+    pool = get_pool()
+
+    async with pool.acquire() as conn:
+        async with conn.cursor(DictCursor) as cursor:
+
+            await cursor.execute("""
+                SELECT 1
+                FROM guild_key_db
+                WHERE guild_id = %s
+                AND guild_key = 'Main'
+                LIMIT 1
+            """, (guild_id,))
+
+            row = await cursor.fetchone()
+
+    return row is not None
