@@ -30,7 +30,7 @@ async def _load_folder(bot: commands.Bot, folder: str):
 
             await bot.load_extension(module)
 
-            print(f"[Loader] Loaded: {module}")
+            # print(f"[Loader] Loaded: {module}")
 
 
 async def _unload_folder(bot: commands.Bot, folder: str):

@@ -81,9 +81,9 @@ class MyBot(commands.Bot):
         self.add_view(IntroButton())
         self.add_view(FeedbackButton())
 
-        self.add_view(ExecutiveInfoView("guild"))
-        self.add_view(ExecutiveInfoView("clan"))
-        self.add_view(ExecutiveInfoView("sinyalid"))
+        self.add_view(ExecutiveInfoView("executive_guild"))
+        self.add_view(ExecutiveInfoView("executive_clan"))
+        self.add_view(ExecutiveInfoView("executive_sinyalid"))
         
         self.add_view(GTIntroductionView())
 

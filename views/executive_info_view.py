@@ -165,7 +165,11 @@ class ExecutiveInfoSelect(discord.ui.Select):
         # =========================
         # SOURCE OF TRUTH MESSAGE
         # =========================
-        msg = self.view.info_message
+        key = (
+            interaction.channel.id,
+            interaction.user.id
+        )
+        msg = self.view.info_messages.get(key)
 
         try:
             # =========================
@@ -179,7 +183,8 @@ class ExecutiveInfoSelect(discord.ui.Select):
             # =========================
             else:
                 msg = await interaction.channel.send(embed=embed)
-                self.view.info_message = msg
+
+                self.view.info_messages[key] = msg
 
             # =========================
             # SCHEDULER RESET
@@ -193,7 +198,7 @@ class ExecutiveInfoSelect(discord.ui.Select):
         except discord.NotFound:
             # message hilang → buat ulang
             msg = await interaction.channel.send(embed=embed)
-            self.view.info_message = msg
+            self.view.info_messages[key] = msg
 
             await register_delete(
                 channel_id=msg.channel.id,
@@ -205,16 +210,11 @@ class ExecutiveInfoSelect(discord.ui.Select):
 # =========================
 class ExecutiveInfoView(discord.ui.View):
 
-    def __init__(
-        self,
-        executive_type: str = None
-    ):
-
+    def __init__(self, executive_type):
         super().__init__(timeout=None)
-        
-        self.info_message = None
+
+        self.info_messages = {}   # user_id -> message
 
         self.add_item(
-            ExecutiveInfoSelect(executive_type=executive_type)
+            ExecutiveInfoSelect(executive_type)
         )
-        
