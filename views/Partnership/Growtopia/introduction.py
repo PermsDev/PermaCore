@@ -2,8 +2,13 @@ import discord
 import traceback
 
 from database.role_manager import get_role_id
+from database.intro_manager import (
+    save_user_profile,
+    save_intro
+)
 
 ROLE_KEY = "introduction"
+GAME_KEY = "growtopia"
 
 class GTIntroductionModal(discord.ui.Modal, title="Growtopia Introduction"):
 
@@ -27,36 +32,29 @@ class GTIntroductionModal(discord.ui.Modal, title="Growtopia Introduction"):
         print(f"Nama    : {self.nama.value}")
         print(f"GrowID  : {self.growid.value}")
         print("==================================\n")
-
-        try:
-            embed = discord.Embed(
-                title="📋 Introduction",
-                color=discord.Color.green()
-            )
-
-            embed.add_field(
-                name="Nama",
-                value=self.nama.value,
-                inline=False
-            )
-
-            embed.add_field(
-                name="GrowID",
-                value=self.growid.value,
-                inline=False
-            )
-
-            embed.set_footer(
-                text=f"Discord : {interaction.user}"
+        
+        try:            
+            await save_user_profile(
+                guild_id=interaction.guild.id,
+                user_id=interaction.user.id,
+                nickname=self.nama.value,
+                joined_at=interaction.user.joined_at
             )
             
+            await save_intro(
+                guild_id=interaction.guild.id,
+                user_id=interaction.user.id,
+                game_key=GAME_KEY,
+                value=self.growid.value,
+                message_id=None,
+                channel_id=None
+            )
             role_id = await get_role_id(
                 interaction.guild.id,
                 ROLE_KEY
             )
 
             if role_id:
-                
                 role = interaction.guild.get_role(role_id)
                 
                 if role and role not in interaction.user.roles:
@@ -75,8 +73,33 @@ class GTIntroductionModal(discord.ui.Modal, title="Growtopia Introduction"):
                     except Exception:
                         traceback.print_exc()
             
+            embed = discord.Embed(
+                title="✅ Introduction Berhasil",
+                description=(
+                    "Data introduction kamu berhasil disimpan."
+                ),
+                color=discord.Color.green()
+            )
+
+            embed.add_field(
+                name="👤 Nama",
+                value=self.nama.value,
+                inline=False
+            )
+
+            embed.add_field(
+                name="🌱 GrowID",
+                value=self.growid.value,
+                inline=False
+            )
+
+            embed.set_footer(
+                text=f"Discord ID : {interaction.user.id}"
+            )
+
             await interaction.response.send_message(
-                embed=embed
+                embed=embed,
+                ephemeral=True
             )
 
         except Exception:
