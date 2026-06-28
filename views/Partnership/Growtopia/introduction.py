@@ -4,7 +4,8 @@ import traceback
 from database.role_manager import get_role_id
 from database.intro_manager import (
     save_user_profile,
-    save_intro
+    save_intro,
+    get_user_profile
 )
 
 ROLE_KEY = "introduction"
@@ -23,6 +24,19 @@ class GTIntroductionModal(discord.ui.Modal, title="Growtopia Introduction"):
         placeholder="Masukkan GrowID kamu",
         max_length=30
     )
+    
+    def __init__(
+        self,
+        nama: str | None = None,
+        growid: str | None = None
+    ):
+        super().__init__()
+
+        if nama:
+            self.nama.default = nama
+
+        if growid:
+            self.growid.default = growid
 
     async def on_submit(self, interaction: discord.Interaction):
 
@@ -133,8 +147,28 @@ class GTIntroductionView(discord.ui.View):
         print("==================================\n")
 
         try:
+            profile = await get_user_profile(
+                guild_id=interaction.guild.id,
+                user_id=interaction.user.id
+            )
+
+            nama = None
+            growid = None
+
+            if profile:
+
+                nama = profile.get("nickname")
+
+                games = profile.get("games", {})
+
+                if GAME_KEY in games:
+                    growid = games[GAME_KEY]["value"]
+
             await interaction.response.send_modal(
-                GTIntroductionModal()
+                GTIntroductionModal(
+                    nama=nama,
+                    growid=growid
+                )
             )
 
         except Exception:
