@@ -1,6 +1,9 @@
 import discord
 import traceback
 
+from database.role_manager import get_role_id
+
+ROLE_KEY = "introduction"
 
 class GTIntroductionModal(discord.ui.Modal, title="Growtopia Introduction"):
 
@@ -46,7 +49,32 @@ class GTIntroductionModal(discord.ui.Modal, title="Growtopia Introduction"):
             embed.set_footer(
                 text=f"Discord : {interaction.user}"
             )
+            
+            role_id = await get_role_id(
+                interaction.guild.id,
+                ROLE_KEY
+            )
 
+            if role_id:
+                
+                role = interaction.guild.get_role(role_id)
+                
+                if role and role not in interaction.user.roles:
+
+                    try:
+                        await interaction.user.add_roles(
+                            role,
+                            reason="Growtopia Introduction Completed"
+                        )
+
+                    except discord.Forbidden:
+                        print(
+                            f"[GT Intro] Tidak bisa memberikan role {role.name}"
+                        )
+
+                    except Exception:
+                        traceback.print_exc()
+            
             await interaction.response.send_message(
                 embed=embed
             )

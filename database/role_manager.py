@@ -111,3 +111,77 @@ async def get_no_rename_roles(
         for key in protected_roles
         if key in roles
     }
+    
+# ==================================================
+# insert / update role
+# ==================================================
+async def set_role(
+    guild_id: int,
+    role_id: int,
+    role_group: str,
+    role_key: str
+):
+    pool = get_pool()
+
+    async with pool.acquire() as conn:
+        try:
+            async with conn.cursor() as cursor:
+                await cursor.execute("""
+                    INSERT INTO role_db (
+                        guild_id,
+                        role_id,
+                        role_group,
+                        role_key
+                    )
+                    VALUES (%s, %s, %s, %s)
+                    ON DUPLICATE KEY UPDATE
+                        role_id = VALUES(role_id)
+                """, (
+                    guild_id,
+                    role_id,
+                    role_group,
+                    role_key
+                ))
+
+            await conn.commit()
+
+        except Exception:
+            await conn.rollback()
+            raise
+
+    # Refresh cache
+    await load_roles(guild_id)
+
+
+# ==================================================
+# delete role
+# ==================================================
+async def delete_role(
+    guild_id: int,
+    role_group: str,
+    role_key: str
+):
+    pool = get_pool()
+
+    async with pool.acquire() as conn:
+        try:
+            async with conn.cursor() as cursor:
+                await cursor.execute("""
+                    DELETE FROM role_db
+                    WHERE guild_id = %s
+                    AND role_group = %s
+                    AND role_key = %s
+                """, (
+                    guild_id,
+                    role_group,
+                    role_key
+                ))
+
+            await conn.commit()
+
+        except Exception:
+            await conn.rollback()
+            raise
+
+    # Refresh cache
+    await load_roles(guild_id)
