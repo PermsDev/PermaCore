@@ -9,6 +9,7 @@ from core.loader import (
     load_partner_growtopia_cogs,
 )
 
+from services.heartbeat import HeartbeatTask
 from utils.delete_scheduler import delete_checker
 
 from views.intro import IntroButton, register_persistent_views
@@ -46,6 +47,7 @@ from events.member_role_update import (
 # ======================
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
+HEARTBEAT_CHECK = os.getenv("HEALTH_CHECKS")
 
 # ======================
 # INTENTS
@@ -125,6 +127,15 @@ async def on_ready():
         await load_roles(guild.id)
 
     print(f"Bot login sebagai {bot.user}")
+    
+    heartbeat = HeartbeatTask(
+        url=HEARTBEAT_CHECK,
+        interval=30
+    )
+
+    bot.loop.create_task(
+        heartbeat.start()
+    )
 
 
 # ======================
