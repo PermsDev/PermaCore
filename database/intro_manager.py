@@ -24,7 +24,7 @@ async def get_user_profile(
                     joined_at
                 FROM user_db
                 WHERE guild_id = %s
-                  AND user_id = %s
+                    AND user_id = %s
             """, (
                 guild_id,
                 user_id
@@ -51,7 +51,7 @@ async def get_user_profile(
                     channel_id
                 FROM intro_db
                 WHERE guild_id = %s
-                  AND user_id = %s
+                    AND user_id = %s
             """, (
                 guild_id,
                 user_id
@@ -128,7 +128,7 @@ async def get_user_intro(
                     channel_id
                 FROM intro_db
                 WHERE guild_id=%s
-                  AND user_id=%s
+                    AND user_id=%s
             """, (
                 guild_id,
                 user_id
