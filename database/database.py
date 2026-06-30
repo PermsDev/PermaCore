@@ -22,7 +22,7 @@ async def init_database():
             minsize=5,
             maxsize=10,
 
-            autocommit=False,
+            autocommit=True,
 
             pool_recycle=300
         )

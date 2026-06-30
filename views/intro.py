@@ -1,5 +1,3 @@
-import traceback
-
 import discord
 import asyncio
 from services.card_generator import generate_card, get_avatar
@@ -575,8 +573,8 @@ class IntroModal(discord.ui.Modal):
         except Exception as e:
 
             save_success = False
-            # save_error = str(e)
-            save_error = traceback.format_exc()
+            save_error = str(e)
+            # save_error = traceback.format_exc()
 
         # ======================
         # RESPONSE MESSAGE
