@@ -4,6 +4,7 @@ from discord.ext import commands
 
 from services.check.channel_db import check_channel_messages_db, ChannelCheckView
 from services.check.message_db import check_message_db
+from services.check.member_db import check_member_db
 from services.check.cleanup.message_db_cleanup import cleanup_message_db
 
 OWNER_ID = int(os.getenv("OWNER_ID"))
@@ -216,5 +217,81 @@ class CheckGroup(commands.Cog):
             ephemeral=True
         )
 
+    # =========================
+    # /check member
+    # =========================
+    @check.command(
+        name="member",
+        description="(Only Developer) Check guild members vs user_db"
+    )
+    @app_commands.check(is_owner)
+    async def member(
+        self,
+        interaction: discord.Interaction
+    ):
+
+        await interaction.response.defer(ephemeral=True)
+
+        result = await check_member_db(interaction.guild)
+
+        if not result["orphan"]:
+
+            embed = discord.Embed(
+                title="✅ Member Check Complete",
+                color=discord.Color.green()
+            )
+
+        else:
+
+            embed = discord.Embed(
+                title="⚠️ Member Check Complete",
+                color=discord.Color.orange()
+            )
+
+        embed.add_field(
+            name="Discord Members",
+            value=str(result["discord"])
+        )
+
+        embed.add_field(
+            name="Database Users",
+            value=str(result["database"])
+        )
+
+        embed.add_field(
+            name="Added",
+            value=str(len(result["added"])),
+            inline=False
+        )
+
+        if result["orphan"]:
+
+            text = "\n".join(
+                f"• `{user_id}`"
+                for user_id in result["orphan"][:30]
+            )
+
+            if len(result["orphan"]) > 30:
+                text += f"\n... dan {len(result['orphan']) - 30} lainnya"
+
+            embed.add_field(
+                name=f"Orphan Users ({len(result['orphan'])})",
+                value=text,
+                inline=False
+            )
+
+        else:
+
+            embed.add_field(
+                name="Status",
+                value="✅ Semua member sudah sinkron.",
+                inline=False
+            )
+
+        await interaction.followup.send(
+            embed=embed,
+            ephemeral=True
+        )
+    
 async def setup(bot):
     await bot.add_cog(CheckGroup(bot))

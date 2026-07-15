@@ -30,3 +30,19 @@ async def ensure_user_exists(
         except Exception:
             await conn.rollback()
             raise
+        
+async def get_all_users(guild_id: int):
+    pool = get_pool()
+
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
+
+            await cursor.execute("""
+                SELECT
+                    user_id,
+                    guild_id
+                FROM user_db
+                WHERE guild_id=%s
+            """, (guild_id,))
+
+            return await cursor.fetchall()
