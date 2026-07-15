@@ -34,6 +34,11 @@ async def check_member_db(
     print("\n[Database] Loading user_db...")
 
     rows = await get_all_users(guild.id)
+    print(type(rows))
+
+    if rows:
+        print(type(rows[0]))
+        print(rows[0])
 
     db_users = {
         row["user_id"]
