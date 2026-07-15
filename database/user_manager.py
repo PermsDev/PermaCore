@@ -32,10 +32,15 @@ async def ensure_user_exists(
             raise
         
 async def get_all_users(guild_id: int):
+    print("[DB] Acquire connection")
+
     pool = get_pool()
 
     async with pool.acquire() as conn:
+        print("[DB] Connection acquired")
+
         async with conn.cursor() as cursor:
+            print("[DB] Execute query")
 
             await cursor.execute("""
                 SELECT
@@ -45,4 +50,10 @@ async def get_all_users(guild_id: int):
                 WHERE guild_id=%s
             """, (guild_id,))
 
-            return await cursor.fetchall()
+            print("[DB] Fetch all")
+
+            rows = await cursor.fetchall()
+
+            print(f"[DB] Loaded {len(rows)} rows")
+
+            return rows
