@@ -72,6 +72,55 @@ async def ensure_users_exist(
             await conn.rollback()
             raise
     
+async def sync_users(
+    guild_id: int,
+    members: list
+):
+    if not members:
+        return
+
+    pool = get_pool()
+
+    async with pool.acquire() as conn:
+        try:
+            async with conn.cursor() as cursor:
+
+                values = []
+
+                for member in members:
+
+                    joined_at = (
+                        member.joined_at.replace(tzinfo=None)
+                        if member.joined_at
+                        else None
+                    )
+
+                    values.append((
+                        member.id,
+                        guild_id,
+                        member.display_name,
+                        joined_at
+                    ))
+
+                await cursor.executemany("""
+                    INSERT INTO user_db (
+                        user_id,
+                        guild_id,
+                        nickname,
+                        joined_at
+                    )
+                    VALUES (%s, %s, %s, %s)
+                    ON DUPLICATE KEY UPDATE
+                        nickname = VALUES(nickname),
+                        joined_at = VALUES(joined_at)
+                """, values)
+
+            await conn.commit()
+
+        except Exception:
+            await conn.rollback()
+            raise
+        
 async def get_all_users(guild_id: int):
     print("[DB] Acquire connection")
 

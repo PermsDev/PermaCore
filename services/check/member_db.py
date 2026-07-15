@@ -2,7 +2,7 @@ import discord
 
 from database.user_manager import (
     get_all_users,
-    ensure_users_exist,
+    sync_users,
 )
 
 
@@ -19,10 +19,15 @@ async def check_member_db(
 
     print("\n[Discord] Loading guild members...")
 
-    discord_members = {
-        member.id: member
+    discord_members = [
+        member
         for member in guild.members
         if not member.bot
+    ]
+
+    discord_ids = {
+        member.id
+        for member in discord_members
     }
 
     print(f"[Discord] Human Members : {len(discord_members)}")
@@ -34,95 +39,72 @@ async def check_member_db(
     print("\n[Database] Loading user_db...")
 
     rows = await get_all_users(guild.id)
-    print(type(rows))
-
-    if rows:
-        print(type(rows[0]))
-        print(rows[0])
 
     db_users = {
-        row[0]
+        row[0]      # gunakan row["user_id"] jika get_all_users memakai DictCursor
         for row in rows
     }
 
-    print(f"[Database] Users : {len(db_users)}")
+    print(f"[Database] Users Before : {len(db_users)}")
 
     # ======================================================
-    # Find New Members
+    # Sync Semua Member
     # ======================================================
 
     print("\n------------------------------------------------------------")
-    print("[SYNC] Finding new members...")
-
-    new_users = []
+    print("[SYNC] Synchronizing members...")
 
     total = len(discord_members)
 
-    for index, user_id in enumerate(discord_members.keys(), start=1):
+    for index, member in enumerate(discord_members, start=1):
 
         if index % 100 == 0 or index == total:
             print(f"[SYNC] Progress {index}/{total}")
 
-        if user_id not in db_users:
-            new_users.append(user_id)
+    await sync_users(
+        guild.id,
+        discord_members
+    )
 
-    print(f"[SYNC] Need insert : {len(new_users)}")
-
-    # ======================================================
-    # Bulk Insert
-    # ======================================================
-
-    if new_users:
-
-        print("[SYNC] Bulk inserting...")
-
-        await ensure_users_exist(
-            guild.id,
-            new_users
-        )
-
-        print("[SYNC] Bulk insert finished.")
+    print("[SYNC] Synchronization finished.")
 
     # ======================================================
-    # Find Orphan Users
+    # Added Members
+    # ======================================================
+
+    added = list(discord_ids - db_users)
+
+    # ======================================================
+    # Orphan Users
     # ======================================================
 
     print("\n------------------------------------------------------------")
     print("[VERIFY] Checking orphan users...")
 
-    orphan = []
+    orphan = list(db_users - discord_ids)
 
-    total = len(db_users)
-
-    discord_ids = set(discord_members.keys())
-
-    for index, user_id in enumerate(db_users, start=1):
-
-        if index % 100 == 0 or index == total:
-            print(f"[VERIFY] Progress {index}/{total}")
-
-        if user_id not in discord_ids:
-            orphan.append(user_id)
-
-    print(f"[VERIFY] Orphan : {len(orphan)}")
+    for index, user_id in enumerate(orphan, start=1):
+        print(f"[{index}/{len(orphan)}] Orphan : {user_id}")
 
     # ======================================================
     # Summary
     # ======================================================
 
+    database_after = len(db_users) + len(added)
+
     print("\n============================================================")
     print("[Check FINISHED]")
-
     print(f"Discord Members : {len(discord_members)}")
-    print(f"Database Users  : {len(db_users)}")
-    print(f"Added           : {len(new_users)}")
+    print(f"Database Before : {len(db_users)}")
+    print(f"Database After  : {database_after}")
+    print(f"Added           : {len(added)}")
     print(f"Orphan Users    : {len(orphan)}")
-
     print("============================================================")
 
     return {
         "discord": len(discord_members),
-        "database": len(db_users),
-        "added": new_users,
+        "database_before": len(db_users),
+        "database_after": database_after,
+        "added": added,
         "orphan": orphan,
     }
