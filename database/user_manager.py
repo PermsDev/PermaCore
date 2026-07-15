@@ -89,17 +89,12 @@ async def sync_users(
 
                 for member in members:
 
-                    joined_at = (
-                        member.joined_at.replace(tzinfo=None)
-                        if member.joined_at
-                        else None
-                    )
-
                     values.append((
                         member.id,
                         guild_id,
-                        member.display_name,
-                        joined_at
+                        member.joined_at.replace(tzinfo=None)
+                        if member.joined_at
+                        else None
                     ))
 
                 await cursor.executemany("""
@@ -109,9 +104,8 @@ async def sync_users(
                         nickname,
                         joined_at
                     )
-                    VALUES (%s, %s, %s, %s)
+                    VALUES (%s, %s, NULL, %s)
                     ON DUPLICATE KEY UPDATE
-                        nickname = VALUES(nickname),
                         joined_at = VALUES(joined_at)
                 """, values)
 
