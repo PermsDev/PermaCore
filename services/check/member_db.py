@@ -41,7 +41,7 @@ async def check_member_db(
         print(rows[0])
 
     db_users = {
-        row["user_id"]
+        row[0]
         for row in rows
     }
 
