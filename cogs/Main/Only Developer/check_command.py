@@ -232,66 +232,79 @@ class CheckGroup(commands.Cog):
 
         await interaction.response.defer(ephemeral=True)
 
-        result = await check_member_db(interaction.guild)
+        try:
 
-        if not result["orphan"]:
+            result = await check_member_db(interaction.guild)
 
-            embed = discord.Embed(
-                title="✅ Member Check Complete",
-                color=discord.Color.green()
-            )
-
-        else:
-
-            embed = discord.Embed(
-                title="⚠️ Member Check Complete",
-                color=discord.Color.orange()
-            )
-
-        embed.add_field(
-            name="Discord Members",
-            value=str(result["discord"])
-        )
-
-        embed.add_field(
-            name="Database Users",
-            value=str(result["database"])
-        )
-
-        embed.add_field(
-            name="Added",
-            value=str(len(result["added"])),
-            inline=False
-        )
-
-        if result["orphan"]:
-
-            text = "\n".join(
-                f"• `{user_id}`"
-                for user_id in result["orphan"][:30]
-            )
-
-            if len(result["orphan"]) > 30:
-                text += f"\n... dan {len(result['orphan']) - 30} lainnya"
+            if not result["orphan"]:
+                embed = discord.Embed(
+                    title="✅ Member Check Complete",
+                    color=discord.Color.green()
+                )
+            else:
+                embed = discord.Embed(
+                    title="⚠️ Member Check Complete",
+                    color=discord.Color.orange()
+                )
 
             embed.add_field(
-                name=f"Orphan Users ({len(result['orphan'])})",
-                value=text,
+                name="Discord Members",
+                value=str(result["discord"])
+            )
+
+            embed.add_field(
+                name="Database Before",
+                value=str(result["database_before"])
+            )
+
+            embed.add_field(
+                name="Database After",
+                value=str(result["database_after"])
+            )
+
+            embed.add_field(
+                name="Added",
+                value=str(len(result["added"])),
                 inline=False
             )
 
-        else:
+            if result["orphan"]:
 
-            embed.add_field(
-                name="Status",
-                value="✅ Semua member sudah sinkron.",
-                inline=False
+                text = "\n".join(
+                    f"• `{user_id}`"
+                    for user_id in result["orphan"][:30]
+                )
+
+                if len(result["orphan"]) > 30:
+                    text += f"\n... dan {len(result['orphan']) - 30} lainnya"
+
+                embed.add_field(
+                    name=f"Orphan Users ({len(result['orphan'])})",
+                    value=text,
+                    inline=False
+                )
+
+            else:
+
+                embed.add_field(
+                    name="Status",
+                    value="✅ Semua member sudah sinkron.",
+                    inline=False
+                )
+
+            await interaction.followup.send(
+                embed=embed,
+                ephemeral=True
             )
 
-        await interaction.followup.send(
-            embed=embed,
-            ephemeral=True
-        )
+        except Exception:
+            import traceback
+            traceback.print_exc()
+
+            await interaction.followup.send(
+                "❌ Terjadi error saat menjalankan Member Check.",
+                ephemeral=True
+            )
     
 async def setup(bot):
     await bot.add_cog(CheckGroup(bot))
