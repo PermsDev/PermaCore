@@ -139,13 +139,43 @@ class CheckGroup(commands.Cog):
         )
 
         for k, v in missing.items():
-            if len(v) > 0:
-                embed.add_field(
-                    name=k,
-                    value=f"{len(v)} issues",
-                    inline=False
+            if not v:
+                continue
+
+            # channel_db menyimpan dict
+            if k == "channel_db":
+                lines = []
+
+                for item in v:
+                    line = (
+                        f"• `{item['key']}`\n"
+                        f"Channel: `{item['channel_id']}`\n"
+                        f"Reason: `{item['reason']}`"
+                    )
+
+                    if "panel_message" in item:
+                        line += f"\nMessage: `{item['panel_message']}`"
+
+                    lines.append(line)
+
+                value = "\n\n".join(lines)
+
+            else:
+                # database lain menyimpan list message_id
+                value = "\n".join(
+                    f"• `{message_id}`"
+                    for message_id in v
                 )
 
+            # Discord maksimal 1024 karakter per field
+            if len(value) > 1024:
+                value = value[:1000] + "\n..."
+
+            embed.add_field(
+                name=f"{k} ({len(v)})",
+                value=value,
+                inline=False
+            )
         embed.set_footer(text="Apakah kamu ingin menghapus data ini dari database?")
 
         # =========================
