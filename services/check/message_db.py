@@ -117,13 +117,18 @@ async def check_message_db(
 
         for item in queue:
 
-            print(f"[DELETE] Checking msg={item['message_id']}")
+            message_id = item.get("message_id")
 
-            exists = await check_message(item["channel_id"], item["message_id"])
+            if not message_id:
+                continue
+
+            print(f"[DELETE] Checking msg={message_id}")
+
+            exists = await check_message(item["channel_id"], message_id)
 
             if not exists:
                 print("   ↳ ❌ MISSING")
-                missing["delete_queue_db"].append(item["message_id"])
+                missing["delete_queue_db"].append(message_id)
 
             await asyncio.sleep(0)
 
@@ -138,13 +143,18 @@ async def check_message_db(
 
         for fb in feedbacks:
 
-            print(f"[FEEDBACK] msg={fb['message_id']}")
+            message_id = fb.get("message_id")
 
-            exists = await check_message(fb["channel_id"], fb["message_id"])
+            if not message_id:
+                continue
+
+            print(f"[FEEDBACK] msg={message_id}")
+
+            exists = await check_message(fb["channel_id"], message_id)
 
             if not exists:
                 print("   ↳ ❌ MISSING")
-                missing["feedback_db"].append(fb["message_id"])
+                missing["feedback_db"].append(message_id)
 
             await asyncio.sleep(0)
             
@@ -225,14 +235,19 @@ async def check_message_db(
             print(f"[GUILD MSG] Total: {len(msgs)}")
 
             for msg in msgs:
+                
+                message_id = msg.get("message_id")
 
-                print(f"[GUILD MSG] msg={msg['message_id']}")
+                if not message_id:
+                    continue
 
-                exists = await check_message(msg["channel_id"], msg["message_id"])
+                print(f"[GUILD MSG] msg={message_id}")
+
+                exists = await check_message(msg["channel_id"], message_id)
 
                 if not exists:
                     print("   ↳ ❌ MISSING")
-                    missing["guild_message_db"].append(msg["message_id"])
+                    missing["guild_message_db"].append(message_id)
 
                 await asyncio.sleep(0)
 
@@ -246,14 +261,19 @@ async def check_message_db(
         print(f"[INTRO] Total: {len(intros)}")
 
         for intro in intros:
+            
+            message_id = intro.get("message_id")
 
-            print(f"[INTRO] msg={intro['message_id']}")
+            if not message_id:
+                continue
 
-            exists = await check_message(intro["channel_id"], intro["message_id"])
+            print(f"[INTRO] msg={message_id}")
+
+            exists = await check_message(intro["channel_id"], message_id)
 
             if not exists:
                 print("   ↳ ❌ MISSING")
-                missing["intro_db"].append(intro["message_id"])
+                missing["intro_db"].append(message_id)
 
             await asyncio.sleep(0)
 
