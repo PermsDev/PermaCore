@@ -1,3 +1,4 @@
+import asyncio
 import discord
 
 from database.user_manager import (
@@ -6,14 +7,17 @@ from database.user_manager import (
 )
 
 
-async def check_member_db(guild: discord.Guild):
-
+async def check_member_db(
+    guild: discord.Guild
+):
     print("\n" + "=" * 60)
     print("[Check] START member_db scan")
 
-    # =========================
-    # Discord Members
-    # =========================
+    # ======================================================
+    # LOAD DISCORD MEMBERS
+    # ======================================================
+
+    print("\n[Discord] Loading guild members...")
 
     discord_members = {
         member.id: member
@@ -21,11 +25,13 @@ async def check_member_db(guild: discord.Guild):
         if not member.bot
     }
 
-    print(f"[Discord] Members : {len(discord_members)}")
+    print(f"[Discord] Human Members : {len(discord_members)}")
 
-    # =========================
-    # Database Users
-    # =========================
+    # ======================================================
+    # LOAD DATABASE USERS
+    # ======================================================
+
+    print("\n[Database] Loading user_db...")
 
     rows = await get_all_users(guild.id)
 
@@ -36,18 +42,28 @@ async def check_member_db(guild: discord.Guild):
 
     print(f"[Database] Users : {len(db_users)}")
 
-    # =========================
-    # Missing in DB
-    # =========================
+    # ======================================================
+    # DISCORD -> DATABASE
+    # ======================================================
+
+    print("\n" + "-" * 60)
+    print("[SYNC] Discord -> Database")
 
     added = []
 
-    for user_id, member in discord_members.items():
+    total = len(discord_members)
+
+    for index, (user_id, member) in enumerate(discord_members.items(), start=1):
+
+        # Progress setiap 100 member
+        if index % 100 == 0 or index == total:
+            print(f"[SYNC] Progress {index}/{total}")
 
         if user_id in db_users:
+            await asyncio.sleep(0)
             continue
 
-        print(f"➕ Add user {user_id}")
+        print(f"➕ Adding {member} ({user_id})")
 
         await ensure_user_exists(
             guild.id,
@@ -56,25 +72,54 @@ async def check_member_db(guild: discord.Guild):
 
         added.append(user_id)
 
-    # =========================
-    # Orphan Users
-    # =========================
+        await asyncio.sleep(0)
+
+    print(f"[SYNC] Finished. Added {len(added)} members.")
+
+    # ======================================================
+    # DATABASE -> DISCORD
+    # ======================================================
+
+    print("\n" + "-" * 60)
+    print("[VERIFY] Database -> Discord")
 
     orphan = []
 
-    for user_id in db_users:
+    total = len(db_users)
 
-        if user_id not in discord_members:
+    for index, user_id in enumerate(db_users, start=1):
 
-            print(f"❌ Orphan user {user_id}")
+        if index % 100 == 0 or index == total:
+            print(f"[VERIFY] Progress {index}/{total}")
 
-            orphan.append(user_id)
+        if user_id in discord_members:
+            await asyncio.sleep(0)
+            continue
 
+        print(f"❌ Orphan User : {user_id}")
+
+        orphan.append(user_id)
+
+        await asyncio.sleep(0)
+
+    print(f"[VERIFY] Finished. Found {len(orphan)} orphan users.")
+
+    # ======================================================
+    # SUMMARY
+    # ======================================================
+
+    print("\n" + "=" * 60)
+    print("[Check FINISHED]")
+
+    print(f"Discord Members : {len(discord_members)}")
+    print(f"Database Users  : {len(db_users)}")
+    print(f"Added           : {len(added)}")
+    print(f"Orphan Users    : {len(orphan)}")
     print("=" * 60)
 
     return {
-        "added": added,
-        "orphan": orphan,
         "discord": len(discord_members),
         "database": len(db_users),
+        "added": added,
+        "orphan": orphan,
     }
