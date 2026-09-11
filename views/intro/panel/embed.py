@@ -1,5 +1,5 @@
 import discord
-from database.core.emoji_manager import get_emoji
+from database.core.emoji_manager import EMOJIS, get_emoji
 
 async def intro_embed() -> discord.Embed:
     
@@ -7,13 +7,11 @@ async def intro_embed() -> discord.Embed:
 
     return discord.Embed(
         description=(
-            f"## {emoji_intro} Perkenalan Diri\n\n"
+            f"## {emoji_intro} Verifikasi dan Perkenalan Diri\n"
+            "Silahkan melakukan verifikasi dengan cara menekan tombol **Profile** di bawah ini."
+            "\n━━━━━━━━━━━━━━━━━━\n"
 
-            "Selamat datang di panel **Perkenalan Diri**!\n"
-            "Gunakan panel ini untuk mengatur informasi profile "
-            "dan nama yang ditampilkan di server.\n\n"
-
-            "👤 **Profile**\n"
+            "\n👤 **Profile**\n"
             "Tambahkan nama panggilan serta akun game yang kamu "
             "miliki melalui tombol **Profile**.\n\n"
 
@@ -21,7 +19,7 @@ async def intro_embed() -> discord.Embed:
             "Pilih informasi yang ingin digunakan sebagai "
             "display name server melalui tombol **Display Name**.\n\n"
 
-            "━━━━━━━━━━━━━━━━━━━━\n"
+            "━━━━━━━━━━━━━━━━━━\n"
             "-# **Tips:** Pastikan data yang kamu masukkan "
             "sudah benar sebelum menyimpannya."
         ),
