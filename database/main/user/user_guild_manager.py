@@ -137,9 +137,9 @@ async def sync_users(guild_id: int, members: list):
                         guild_id,
                         joined_at
                     )
-                    VALUES (%s, %s, %s) AS new
+                    VALUES (%s, %s, %s) 
                     ON DUPLICATE KEY UPDATE
-                        joined_at = new.joined_at
+                        joined_at = VALUES(joined_at)
                 """, guild_values)
 
             await conn.commit()

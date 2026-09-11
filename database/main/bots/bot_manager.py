@@ -90,10 +90,10 @@ async def add_bot(
                         bot_id,
                         bot_name
                     )
-                    VALUES (%s, %s) AS new
+                    VALUES (%s, %s) 
 
                     ON DUPLICATE KEY UPDATE
-                        bot_name = new.bot_name
+                        bot_name = VALUES(bot_name)
                 """, (
                     bot_id,
                     bot_name

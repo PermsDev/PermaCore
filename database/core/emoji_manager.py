@@ -121,11 +121,11 @@ async def set_emoji(
                         emoji_id,
                         animated
                     )
-                    VALUES (%s, %s, %s) AS new
+                    VALUES (%s, %s, %s) 
 
                     ON DUPLICATE KEY UPDATE
-                        emoji_id = new.emoji_id,
-                        animated = new.animated
+                        emoji_id = VALUES(emoji_id),
+                        animated = VALUES(animated)
                 """, (
                     emoji_key,
                     emoji_id,

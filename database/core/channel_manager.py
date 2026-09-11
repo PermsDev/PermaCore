@@ -75,10 +75,10 @@ async def set_channel(
                         channel_id,
                         panel_message
                     )
-                    VALUES (%s, %s, %s, %s) AS new
+                    VALUES (%s, %s, %s, %s) 
                     ON DUPLICATE KEY UPDATE
-                        channel_id = new.channel_id,
-                        panel_message = new.panel_message
+                        channel_id = VALUES(channel_id),
+                        panel_message = VALUES(panel_message)
                 """, (
                     guild_id,
                     channel_key,

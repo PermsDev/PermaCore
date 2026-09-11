@@ -102,10 +102,10 @@ async def add_guild(
                         guild_id,
                         guild_name
                     )
-                    VALUES (%s, %s) AS new
+                    VALUES (%s, %s) 
 
                     ON DUPLICATE KEY UPDATE
-                        guild_name = new.guild_name
+                        guild_name = VALUES(guild_name)
                 """, (
                     guild_id,
                     guild_name

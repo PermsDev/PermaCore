@@ -132,9 +132,9 @@ async def set_role(
                         role_group,
                         role_key
                     )
-                    VALUES (%s, %s, %s, %s) AS new
+                    VALUES (%s, %s, %s, %s) 
                     ON DUPLICATE KEY UPDATE
-                        role_id = new.role_id
+                        role_id = VALUES(role_id)
                 """, (
                     guild_id,
                     role_id,

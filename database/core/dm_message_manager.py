@@ -90,10 +90,10 @@ async def upsert_dm_message(
                         dm_type,
                         message_id
                     )
-                    VALUES (%s, %s, %s, %s, %s) AS new
+                    VALUES (%s, %s, %s, %s, %s) 
 
                     ON DUPLICATE KEY UPDATE
-                        message_id = new.message_id
+                        message_id = VALUES(message_id)
                 """, (
                     guild_id,
                     user_id,

@@ -21,11 +21,11 @@ async def upsert_delete_queue(
                         message_id,
                         delete_at
                     )
-                    VALUES (%s, %s, %s) AS new
+                    VALUES (%s, %s, %s) 
 
                     ON DUPLICATE KEY UPDATE
-                        channel_id = new.channel_id,
-                        delete_at = new.delete_at
+                        channel_id = VALUES(channel_id),
+                        delete_at = VALUES(delete_at)
                 """, (
                     channel_id,
                     message_id,

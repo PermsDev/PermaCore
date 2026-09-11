@@ -223,10 +223,10 @@ async def save_user_profile(
                         guild_id,
                         joined_at
                     )
-                    VALUES (%s, %s, %s) AS new
+                    VALUES (%s, %s, %s) 
 
                     ON DUPLICATE KEY UPDATE
-                        joined_at = new.joined_at
+                        joined_at = VALUES(joined_at)
                 """, (
                     user_id,
                     guild_id,
@@ -242,10 +242,10 @@ async def save_user_profile(
                         user_id,
                         nickname
                     )
-                    VALUES (%s, %s) AS new
+                    VALUES (%s, %s) 
 
                     ON DUPLICATE KEY UPDATE
-                        nickname = new.nickname
+                        nickname = VALUES(nickname)
                 """, (
                     user_id,
                     nickname
@@ -350,10 +350,10 @@ async def save_intro(
                         game_key,
                         value
                     )
-                    VALUES (%s, %s, %s) AS new
+                    VALUES (%s, %s, %s) 
 
                     ON DUPLICATE KEY UPDATE
-                        value = new.value
+                        value = VALUES(value)
                 """, (
                     user_id,
                     game_key,
@@ -392,11 +392,11 @@ async def save_intro(
                             message_id,
                             channel_id
                         )
-                        VALUES (%s, %s, %s, %s, %s) AS new
+                        VALUES (%s, %s, %s, %s, %s) 
 
                         ON DUPLICATE KEY UPDATE
-                            message_id = new.message_id,
-                            channel_id = new.channel_id
+                            message_id = VALUES(message_id),
+                            channel_id = VALUES(channel_id)
                     """, (
                         guild_id,
                         user_id,

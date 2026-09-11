@@ -65,10 +65,10 @@ async def upsert_guild_message(
                         channel_id,
                         message_id
                     )
-                    VALUES (%s, %s, %s, %s, %s) AS new
+                    VALUES (%s, %s, %s, %s, %s) 
                     ON DUPLICATE KEY UPDATE
-                        channel_id = new.channel_id,
-                        message_id = new.message_id
+                        channel_id = VALUES(channel_id),
+                        message_id = VALUES(message_id)
                 """, (
                     guild_id,
                     user_id,
