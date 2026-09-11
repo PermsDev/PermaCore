@@ -1,6 +1,6 @@
 import discord
 from datetime import datetime
-from database.channel_manager import get_channel
+from database.core.channel_manager import get_channel
 
 # ======================
 # SEND LOG
@@ -46,7 +46,7 @@ async def send_log(
         action_name = {
             "Introduction": "Perkenalan",
             "Member Remove": "Keluar dari Server",
-            "Member Join": "Masuk dan Bergabung di Server"
+            "Member Join": "Bergabung di Server"
         }
 
         description_map = {

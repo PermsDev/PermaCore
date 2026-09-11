@@ -1,15 +1,15 @@
 import discord
 
 from utils.logger import send_log
-from database.user_manager import ensure_user_exists
-from database.dm_message_manager import (
-    upsert_dm_message,
-    delete_dm_message
-)
+from database.main.user.user_guild_manager import ensure_user_guild_exists
+from database.core.emoji_manager import get_emoji
+from database.core.channel_manager import get_channel
+from services.bots.env_service import can_interact_with_user
 
 
-async def handle_member_join(member: discord.Member):
-
+async def handle_member_join(
+    member: discord.Member
+):
     guild = member.guild
     guild_id = guild.id
     user_id = member.id
@@ -17,90 +17,47 @@ async def handle_member_join(member: discord.Member):
     print(f"{member} joined {guild.name}")
 
     # ======================
-    # ENSURE USER EXISTS (WAJIB UNTUK FK)
+    # ENSURE USER & GUILD
     # ======================
-    await ensure_user_exists(guild_id, user_id)
-
-    # ======================
-    # GET DM CHANNEL
-    # ======================
-    try:
-        dm_channel = member.dm_channel or await member.create_dm()
-
-        # ======================
-        # CLEAN OLD BOT MESSAGES ONLY
-        # ======================
-        async for message in dm_channel.history(limit=50):
-
-            # ✔ FIX: pakai bot flag (bukan member.bot.id)
-            if not message.author.bot:
-                continue
-
-            try:
-                await message.delete()
-
-            except discord.Forbidden:
-                print(f"[FORBIDDEN DM DELETE] {member}")
-                break
-
-            except discord.NotFound:
-                continue
-
-            except Exception as e:
-                print(f"[ERROR DELETE DM] {e}")
-
-    except Exception as e:
-        print(f"[DM CLEAN FAILED] {e}")
+    await ensure_user_guild_exists(
+        user_id=user_id,
+        guild_id=guild_id
+    )
 
     # ======================
-    # SEND NEW WELCOME MESSAGE
+    # UNVERIFIED MESSAGE
     # ======================
-    try:
+    if can_interact_with_user(user_id):
 
-        welcome_message = await member.send(
-
-            f"## Selamat datang di server {member.guild.name}! <a:hi_man:1478080922883719238>\n"
-            
-            "Untuk Melanjutkan Progres Masuk Server, silahkan melakukan introduction dengan mengikuti langkah-langkah berikut:\n\n"
-            
-            "### <a:statusOffline:1478032435164741777> Role 1: Verified Introduction (2)\n"
-            "- Kunjungi Channel <#1501234394076020806>\n"
-            "- Isi formulir introduction untuk mendapatkan role Verified Introduction 2\n"
-        )
-
-        # ======================
-        # SAVE DM PER GUILD (IMPORTANT FIX)
-        # ======================
-
-        # ✔ hapus DM hanya untuk guild ini + user ini + type joined
-        await delete_dm_message(guild_id, user_id, "joined")
-
-        # ✔ simpan DM baru untuk guild ini saja
-        await upsert_dm_message(
+        channel_data = await get_channel(
             guild_id,
-            user_id,
-            "joined",
-            welcome_message.id
+            "UN_VERIFIED"
         )
 
-        await send_log(
-            guild=guild,
-            log_type="INFORMATION",
-            action="Member Join",
-            emoji="👋",
-            user=member
-        )
+        if channel_data:
+            channel = guild.get_channel(
+                int(channel_data["channel_id"])
+            )
 
-    except discord.Forbidden:
-        print(f"[DM BLOCKED] {member}")
-
-    except Exception as e:
-        print(f"[WELCOME DM ERROR] {e}")
+            if channel:
+                await channel.send(
+                    f"Hi, {member.mention} <:hi:1473630666922004562>\n\n"
+                    f"⚠️ Jika kalian membaca pesan ini menandakan kalian "
+                    f"masih belum melakukan verifikasi.\n\n"
+                    f"Untuk melakukan verifikasi silahkan kunjungi channel "
+                    f"<#1501234394076020806> dan mengisi form introduction "
+                    f"yang ada disana.\n\n"
+                    f"Jika kalian mengalami Kendala dalam melakukan verifikasi, "
+                    f"silahkan chat disini."
+                )
 
     # ======================
-    # PUBLIC WELCOME
+    # LOG
     # ======================
-    channel = discord.utils.get(guild.text_channels, name="general")
-
-    if channel:
-        await channel.send(f"👋 Welcome {member.mention}!")
+    await send_log(
+        guild=member.guild,
+        log_type="INFORMATION",
+        action="Member Join",
+        emoji=get_emoji("statusOnline"),
+        user=member
+    )

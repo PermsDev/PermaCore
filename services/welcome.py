@@ -1,7 +1,7 @@
 import asyncio
 import discord
 
-from database.role_manager import get_roles
+from database.core.role_manager import get_roles
 from events.member_role_update import process_welcome
 
 

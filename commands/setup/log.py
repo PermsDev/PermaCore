@@ -2,7 +2,7 @@ import asyncio
 
 import discord
 
-from database.channel_manager import (
+from database.core.channel_manager import (
     set_channel
 )
 

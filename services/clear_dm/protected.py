@@ -1,4 +1,4 @@
-from database.dm_message_manager import get_user_dm_messages
+from database.core.dm_message_manager import get_user_dm_messages
 
 
 # ==================================================

@@ -1,7 +1,7 @@
 import discord
 from discord import app_commands
 
-from database.guild_manager import get_all_guilds
+from database.main.guild_manager import get_all_guilds
 
 
 # ==================================================
@@ -20,7 +20,7 @@ async def guild_autocomplete(
 
     for guild in guilds:
 
-        guild_name = guild["nama_guild"] or str(guild["guild_id"])
+        guild_name = guild["guild_name"] or str(guild["guild_id"])
 
         if current not in guild_name.lower():
             continue

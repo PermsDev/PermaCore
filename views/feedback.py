@@ -2,14 +2,14 @@ import discord
 import asyncio
 
 from datetime import datetime
-from database.feedback_manager import (
+from database.core.feedback_manager import (
     create_feedback,
     reply_feedback
 )
 from utils.delete_scheduler import register_delete
 from utils.logger import send_log
 
-from database.channel_manager import get_channel
+from database.core.channel_manager import get_channel
 
 lock = asyncio.Lock()
 reply_lock = set()
@@ -485,11 +485,6 @@ class FeedbackCategorySelect(discord.ui.Select):
             discord.SelectOption(
                 label="Guild Growtopia",
                 emoji="🌍"
-            ),
-
-            discord.SelectOption(
-                label="Clan Pixel World",
-                emoji="🎮"
             ),
 
             discord.SelectOption(

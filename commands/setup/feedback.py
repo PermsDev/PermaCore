@@ -4,7 +4,7 @@ import discord
 
 from views.feedback import FeedbackButton
 
-from database.channel_manager import (
+from database.core.channel_manager import (
     get_channel,
     set_channel
 )

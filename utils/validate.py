@@ -55,25 +55,6 @@ def validate_roblox(value: str):
 
     return True, ""
 
-
-def validate_pw(value: str):
-    """
-    Pixel Worlds:
-    - 2-15 karakter
-    - huruf, angka
-    - simbol: _ - ^ { } [ ]
-    """
-    if not value:
-        return True, ""
-
-    if not re.fullmatch(r"[A-Za-z0-9_\-\^\{\}\[\]]{2,15}", value):
-        return (
-            False,
-            "Username Pixel Worlds harus 2-15 karakter dan hanya boleh menggunakan huruf, angka, _, -, ^, { }, atau [ ]."
-        )
-
-    return True, ""
-
 def validate_mlbb(value: str):
     """
     Mobile Legends:

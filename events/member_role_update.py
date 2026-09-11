@@ -1,8 +1,8 @@
 import discord
-from database.channel_manager import get_channel
-from database.emoji_manager import get_emoji
-from database.role_manager import get_roles
-from database.guild_message_manager import (
+from database.core.channel_manager import get_channel
+from database.core.emoji_manager import get_emoji
+from database.core.role_manager import get_roles
+from database.core.guild_message_manager import (
     get_guild_message,
     upsert_guild_message
 )
@@ -12,7 +12,6 @@ from database.guild_message_manager import (
 # ========================
 GAME_DISPLAY_NAMES = {
     "growtopia": "Growtopia",
-    "pw": "Pixel World",
     "minecraft": "Minecraft",
     "mlbb": "Mobile Legend",
     "roblox": "Roblox"
@@ -51,10 +50,6 @@ def has_role_group_change(before, after, role_groups: dict):
                 tracked.add(int(role_id))
 
     return bool((before_ids ^ after_ids) & tracked)
-
-
-def get_changed_roles(before, after):
-    return {r.id for r in before.roles} ^ {r.id for r in after.roles}
 
 
 # =========================

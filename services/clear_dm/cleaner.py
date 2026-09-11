@@ -1,7 +1,7 @@
 import asyncio
 import discord
 
-from database.delete_queue_manager import delete_queue_item
+from database.core.delete_queue_manager import delete_queue_item
 
 from services.clear_dm.protected import (
     get_protected_messages,

@@ -2,7 +2,7 @@ import time
 import asyncio
 import discord
 
-from database.delete_queue_manager import (
+from database.core.delete_queue_manager import (
     upsert_delete_queue,
     get_expired_delete_queue,
     delete_queue_item

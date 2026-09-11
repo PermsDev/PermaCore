@@ -8,11 +8,17 @@ __pycache__/
 *.sql
 *.db
 
+# catatan
+*.txt
+
 # Archives
 *.zip
 
 # Backup folders
 backup/
+
+# file
+cek.py
 
 # Migration folders
 migrasi database ke sqlite/

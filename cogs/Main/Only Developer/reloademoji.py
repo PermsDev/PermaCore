@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from database.emoji_manager import reload_emojis 
+from database.core.emoji_manager import reload_emojis 
 
 # 1. Buat class Cog-nya
 class ReloadEmojiCog(commands.Cog):
