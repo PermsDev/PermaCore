@@ -1,3 +1,4 @@
+import logging
 import os
 import discord
 import asyncio
@@ -8,6 +9,7 @@ from core.loader import load_cogs
 from core.sync import sync_commands
 
 from services.bots.bot_guild_sync import sync_bot_guilds
+from services.bots.env_service import is_production
 from services.bots.user_sync import sync_all_members, sync_guild_members
 from services.heartbeat import HeartbeatTask
 from utils.delete_scheduler import delete_checker
@@ -325,6 +327,21 @@ async def on_command_error(
         return
 
     raise error
+
+# ======================
+# DISCORD GATEWAY LOG FILTER
+# ======================
+if is_production():
+
+    class IgnoreGatewayResume(logging.Filter):
+
+        def filter(self, record: logging.LogRecord) -> bool:
+            return "has successfully RESUMED session" not in record.getMessage()
+
+
+    logging.getLogger("discord.gateway").addFilter(
+        IgnoreGatewayResume()
+    )
 
 # ======================
 # RUN BOT
