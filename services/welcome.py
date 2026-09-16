@@ -6,17 +6,30 @@ from events.member_role_update import process_welcome
 
 
 # =========================
-# CHECK ROLE
+# CHECK PANGKAT
 # =========================
-def has_pangkat_role(member, pangkat_roles: set):
+def has_pangkat_role(
+    member: discord.Member,
+    role_groups: dict
+) -> bool:
 
     member_role_ids = {role.id for role in member.roles}
 
-    # pastikan semua jadi int (biar aman dari DB string)
-    pangkat_roles = {int(r) for r in pangkat_roles}
+    pangkat_group = (
+        role_groups
+        .get("by_group", {})
+        .get("pangkat", {})
+    )
 
-    # FIX: cukup return boolean intersection
-    return bool(member_role_ids & pangkat_roles)
+    for role_id in pangkat_group.values():
+
+        if role_id is None:
+            continue
+
+        if int(role_id) in member_role_ids:
+            return True
+
+    return False
 
 
 # =========================
@@ -30,24 +43,23 @@ async def update_welcome_service(
     guild = interaction.guild
 
     # =========================
-    # LOAD ROLES FROM DB
+    # LOAD ROLES FROM DATABASE
     # =========================
     role_groups = await get_roles(guild.id)
-
-    pangkat_roles = set(
-        role_groups.get("pangkat", {}).values()
-    )
-
-    # safety conversion (penting karena MySQL kadang string)
-    pangkat_roles = {int(r) for r in pangkat_roles if r is not None}
 
     # =========================
     # SINGLE USER
     # =========================
     if user:
 
-        if not has_pangkat_role(user, pangkat_roles):
-            return "❌ User tersebut tidak memiliki role pangkat yang diizinkan."
+        if user.bot:
+            return "❌ Bot tidak dapat di-update."
+
+        if not has_pangkat_role(user, role_groups):
+            return (
+                "❌ User tersebut tidak memiliki "
+                "role group `pangkat`."
+            )
 
         await process_welcome(user)
 
@@ -63,10 +75,11 @@ async def update_welcome_service(
         if member.bot:
             continue
 
-        if not has_pangkat_role(member, pangkat_roles):
+        if not has_pangkat_role(member, role_groups):
             continue
 
         await process_welcome(member)
+
         updated += 1
 
         await asyncio.sleep(0.5)
