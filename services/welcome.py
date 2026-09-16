@@ -70,6 +70,11 @@ async def update_welcome_service(
     # =========================
     updated = 0
 
+    print(
+        f"[Welcome Update] Starting update for all members "
+        f"in guild: {guild.name} ({guild.id})"
+    )
+
     for member in guild.members:
 
         if member.bot:
@@ -82,6 +87,16 @@ async def update_welcome_service(
 
         updated += 1
 
+        print(
+            f"[Welcome Update] Updated: "
+            f"{member} ({member.id})"
+        )
+
         await asyncio.sleep(0.5)
+
+    print(
+        f"[Welcome Update] Finished. "
+        f"Total updated: {updated}"
+    )
 
     return f"✅ Updated {updated} members."
