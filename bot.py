@@ -292,12 +292,27 @@ async def on_member_update(before, after):
     if before.roles == after.roles:
         return
 
+    # =========================
+    # PANGKAT STATUS
+    # =========================
     role_groups = await get_roles(after.guild.id)
+    before_has_pangkat = has_pangkat(before, role_groups)
+    after_has_pangkat = has_pangkat(after, role_groups)
 
     # =========================
-    # WELCOME CHECK
+    # FIRST WELCOME
     # =========================
-    if has_pangkat(after, role_groups):
+    # Sebelumnya tidak punya pangkat
+    # Sekarang punya pangkat
+    if not before_has_pangkat and after_has_pangkat:
+        await process_welcome(after)
+        return
+
+    # =========================
+    # UPDATE WELCOME
+    # =========================
+    # Hanya user yang sudah punya pangkat
+    if after_has_pangkat:
 
         if has_role_group_change(
             before,

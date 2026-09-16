@@ -32,25 +32,20 @@ def has_pangkat(member: discord.Member, role_groups: dict) -> bool:
     return False
 
 
-def has_role_group_change(before, after, role_groups: dict):
+def has_role_group_change(before, after, role_groups: dict) -> bool:
 
-    before_ids = {r.id for r in before.roles}
-    after_ids = {r.id for r in after.roles}
+    before_ids = {role.id for role in before.roles}
+    after_ids = {role.id for role in after.roles}
 
     tracked = set()
 
-    # pakai struktur yang benar: by_group
     for group_name, group in role_groups.get("by_group", {}).items():
-
-        if group_name == "pangkat":
-            continue
 
         for role_id in group.values():
             if role_id:
                 tracked.add(int(role_id))
 
     return bool((before_ids ^ after_ids) & tracked)
-
 
 # =========================
 # BUILD EMBED (FIXED SAFE)
