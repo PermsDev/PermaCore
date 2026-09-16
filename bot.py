@@ -258,7 +258,7 @@ async def on_member_join(member):
     if member.bot:
         return
     
-    print(f"[JOIN] {member} joined {member.guild.name} ({member.guild.id})")
+    print(f"[JOIN] {member} joined {member.guild.name}")
 
     await handle_member_join(member)
 

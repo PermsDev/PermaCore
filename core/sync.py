@@ -1,6 +1,7 @@
 import discord
 
 from database.main.guild_key_manager import get_guild_ids
+from services.bots.env_service import is_development
 
 
 async def sync_commands(bot):
@@ -23,10 +24,11 @@ async def sync_commands(bot):
             guild=guild
         )
 
-        print(
-            f"[Sync] Guild -> {guild_id} "
-            f"({len(synced)} Commands)"
-        )
+        if is_development():
+            print(
+                f"[Sync] Guild -> {guild_id} "
+                f"({len(synced)} Commands)"
+            )
 
     # Hapus command global dari local tree
     bot.tree.clear_commands(guild=None)
@@ -34,6 +36,7 @@ async def sync_commands(bot):
     # Sinkronkan penghapusan global ke Discord
     global_synced = await bot.tree.sync()
 
-    print(
-        f"[Sync] Global -> ({len(global_synced)} Commands)"
-    )
+    if is_development():
+        print(
+            f"[Sync] Global -> ({len(global_synced)} Commands)"
+        )
