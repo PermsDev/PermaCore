@@ -7,6 +7,7 @@ from commands.setup.setup_league import setup_league
 from commands.setup.feedback import setup_feedback
 from commands.setup.log import setup_log
 from commands.setup.welcome import setup_welcome
+from commands.setup.setup_guild import setup_guildManage
 
 
 # ======================
@@ -40,7 +41,7 @@ class Setup(commands.Cog):
             interaction=interaction,
             channel=channel
         )
-        
+
     # ======================
     # SETUP LEAGUE
     # ======================
@@ -114,6 +115,24 @@ class Setup(commands.Cog):
             channel=channel
         )
 
+    # ======================
+    # SETUP GUILD MANAGEMENT
+    # ======================
+    @setup.command(
+        name="guild-manage",
+        description="Setup guild management panel | Admin only"
+    )
+    async def guild_manage(
+        self,
+        interaction: discord.Interaction,
+        channel: discord.TextChannel
+    ):
+
+        await setup_guildManage(
+            bot=self.bot,
+            interaction=interaction,
+            channel=channel
+        )
 
 # ======================
 # LOAD COG

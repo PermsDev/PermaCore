@@ -1,19 +1,19 @@
 import discord
 
-from views.league.embed.panel import create_league_panel
+from views.guild.guild_panel import create_guild_manage_panel
 
 
-async def setup_league(
+async def setup_guildManage(
     bot,
     interaction: discord.Interaction,
     channel: discord.TextChannel
 ):
     """
-    Setup league panel.
+    Setup guild management panel.
     """
 
     # =====================================
-    # Cek permission admin
+    # CEK PERMISSION ADMIN
     # =====================================
 
     if not interaction.user.guild_permissions.administrator:
@@ -25,17 +25,17 @@ async def setup_league(
         return
 
     # =====================================
-    # Kirim panel
+    # KIRIM PANEL
     # =====================================
 
     await channel.send(
-        embed=create_league_panel()
+        embed=create_guild_manage_panel()
     )
 
     # =====================================
-    # Response
+    # RESPONSE
     # =====================================
 
     await interaction.response.send_message(
-        f"Panel League dibuat di {channel.mention}"
+        f"Panel Guild Management dibuat di {channel.mention}"
     )
