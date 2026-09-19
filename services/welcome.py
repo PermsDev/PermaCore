@@ -92,7 +92,7 @@ async def update_welcome_service(
             f"{member} ({member.id})"
         )
 
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(2)
 
     print(
         f"[Welcome Update] Finished. "

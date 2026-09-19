@@ -1,23 +1,40 @@
 import discord
 from discord.ext import commands
-from database.core.emoji_manager import reload_emojis 
 
-# 1. Buat class Cog-nya
-class ReloadEmojiCog(commands.Cog):
+from database.core.emoji_manager import reload_emojis
+
+
+class SyncCog(commands.Cog):
+
     def __init__(self, bot):
         self.bot = bot
 
-    # 2. Masukkan perintahnya ke dalam class (perhatikan tambahan parameter 'self')
-    @commands.command(name="reloademoji")
+    @commands.group(name="sync", invoke_without_command=True)
     @commands.is_owner()
-    async def reload_emoji_cmd(self, ctx):
-        msg = await ctx.send("🔄 Sedang memuat ulang cache emoji dari database...")
+    async def sync(self, ctx):
+        await ctx.send("Gunakan: `!sync emoji`")
+
+    @sync.command(name="emoji")
+    @commands.is_owner()
+    async def sync_emoji(self, ctx):
+
+        msg = await ctx.send(
+            "🔄 Sedang memuat ulang cache emoji dari database..."
+        )
+
         try:
             await reload_emojis()
-            await msg.edit(content="✅ Cache emoji berhasil diperbarui tanpa restart bot!")
+
+            await msg.edit(
+                content="✅ Cache emoji berhasil diperbarui tanpa restart bot!"
+            )
+
         except Exception as e:
-            await msg.edit(content=f"❌ Gagal memuat ulang cache: `{e}`")
-            
-# 3. Fungsi setup wajib untuk mendaftarkan class Cog di atas ke bot utama
+
+            await msg.edit(
+                content=f"❌ Gagal memuat ulang cache: `{e}`"
+            )
+
+
 async def setup(bot):
-    await bot.add_cog(ReloadEmojiCog(bot))
+    await bot.add_cog(SyncCog(bot))
