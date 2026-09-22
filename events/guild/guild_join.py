@@ -2,7 +2,7 @@ import discord
 
 from database.main.guild_manager import add_guild
 from database.main.bots.bot_guild_manager import add_bot_to_guild
-from services.bots.user_sync import sync_guild_members
+from services.bots import sync_guild_members
 
 
 async def handle_guild_join(

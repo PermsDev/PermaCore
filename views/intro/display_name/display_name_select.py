@@ -1,6 +1,6 @@
 import discord
 
-from database.main.display_name_manager import (
+from database.main.user.display_name_manager import (
     set_display_source
 )
 

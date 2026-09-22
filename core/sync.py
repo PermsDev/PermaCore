@@ -1,42 +1,117 @@
 import discord
 
 from database.main.guild_key_manager import get_guild_ids
-from services.bots.env_service import is_development
+from services.bots import is_development
 
 
 async def sync_commands(bot):
 
-    guild_ids = await get_guild_ids("Main")
+    # =====================================
+    # AMBIL GUILD DENGAN KEY MAIN
+    # =====================================
 
-    if not guild_ids:
-        print("[Sync] Tidak ada guild dengan guild_key='Main'.")
-        return
+    main_guild_ids = await get_guild_ids("Main")
 
-    for guild_id in guild_ids:
+    main_guild_ids = {
+        int(guild_id)
+        for guild_id in main_guild_ids
+    }
 
-        guild = discord.Object(id=guild_id)
+    # =====================================
+    # CEK GUILD YANG BOT SEDANG IKUTI
+    # =====================================
 
-        # Copy semua global command ke guild
-        bot.tree.copy_global_to(guild=guild)
+    for guild in bot.guilds:
 
-        # Sync command ke guild
-        synced = await bot.tree.sync(
-            guild=guild
+        # =====================================
+        # GUILD TIDAK MEMILIKI KEY MAIN
+        # =====================================
+
+        if guild.id not in main_guild_ids:
+
+            if is_development():
+
+                print(
+                    f"[Sync] Skip -> {guild.name} "
+                    f"({guild.id}) "
+                    f"[Tidak memiliki guild_key='Main']"
+                )
+
+            continue
+
+        # =====================================
+        # GUILD MEMILIKI KEY MAIN
+        # =====================================
+
+        guild_object = discord.Object(
+            id=guild.id
         )
 
-        if is_development():
-            print(
-                f"[Sync] Guild -> {guild_id} "
-                f"({len(synced)} Commands)"
+        # =====================================
+        # COPY GLOBAL COMMAND KE GUILD
+        # =====================================
+
+        bot.tree.copy_global_to(
+            guild=guild_object
+        )
+
+        # =====================================
+        # SYNC COMMAND
+        # =====================================
+
+        try:
+
+            synced = await bot.tree.sync(
+                guild=guild_object
             )
 
-    # Hapus command global dari local tree
-    bot.tree.clear_commands(guild=None)
+            if is_development():
 
-    # Sinkronkan penghapusan global ke Discord
-    global_synced = await bot.tree.sync()
+                print(
+                    f"[Sync] Guild -> {guild.name} "
+                    f"({guild.id}) "
+                    f"({len(synced)} Commands)"
+                )
 
-    if is_development():
+        except discord.Forbidden:
+
+            print(
+                f"[Sync] Missing Access -> "
+                f"{guild.name} ({guild.id})"
+            )
+
+        except discord.HTTPException as e:
+
+            print(
+                f"[Sync] HTTP Error -> "
+                f"{guild.name} ({guild.id}) -> {e}"
+            )
+
+    # =====================================
+    # HAPUS COMMAND GLOBAL DARI LOCAL TREE
+    # =====================================
+
+    bot.tree.clear_commands(
+        guild=None
+    )
+
+    # =====================================
+    # HAPUS COMMAND GLOBAL DI DISCORD
+    # =====================================
+
+    try:
+
+        global_synced = await bot.tree.sync()
+
+        if is_development():
+
+            print(
+                f"[Sync] Global -> "
+                f"({len(global_synced)} Commands)"
+            )
+
+    except discord.HTTPException as e:
+
         print(
-            f"[Sync] Global -> ({len(global_synced)} Commands)"
+            f"[Sync] Global HTTP Error -> {e}"
         )

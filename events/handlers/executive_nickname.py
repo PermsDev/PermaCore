@@ -1,7 +1,7 @@
 import discord
 
 from database.core.role_manager import get_roles
-from database.main.display_name_manager import (
+from database.main.user.display_name_manager import (
     set_display_source
 )
 

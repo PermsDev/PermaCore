@@ -1,17 +1,19 @@
-import logging
-import os
-import discord
-import asyncio
+import logging, os, discord, asyncio
 from dotenv import load_dotenv
 from discord.ext import commands
 
 from core.loader import load_cogs
 from core.sync import sync_commands
 
-from services.bots.bot_guild_sync import sync_bot_guilds
-from services.bots.env_service import is_production
-from services.bots.user_sync import sync_all_members, sync_guild_members
-from services.heartbeat import HeartbeatTask
+from services.bots import (
+    sync_bot_guilds, 
+    is_development, 
+    is_production, 
+    setup_log_filters, 
+    sync_guild_members, 
+    HeartbeatTask
+)
+
 from utils.delete_scheduler import delete_checker
 
 from views.intro.copyValue.register import register_persistent_views
@@ -85,7 +87,6 @@ class MyBot(commands.Bot):
         # ======================
         await init_database()
         await load_cogs(self)
-        await sync_commands(self)
 
         # ======================
         # PERSISTENT VIEWS
@@ -161,6 +162,7 @@ async def on_ready():
     # REGISTER BOT
     # ======================
     await sync_bot_guilds(bot)
+    await sync_commands(bot)
     
     # ======================
     # REMOVE UNAUTHORIZED GUILDS
@@ -343,20 +345,10 @@ async def on_command_error(
 
     raise error
 
-# ======================
-# DISCORD GATEWAY LOG FILTER
-# ======================
-if is_production():
-
-    class IgnoreGatewayResume(logging.Filter):
-
-        def filter(self, record: logging.LogRecord) -> bool:
-            return "has successfully RESUMED session" not in record.getMessage()
-
-
-    logging.getLogger("discord.gateway").addFilter(
-        IgnoreGatewayResume()
-    )
+setup_log_filters(
+    production=is_production(),
+    development=is_development()
+)
 
 # ======================
 # RUN BOT

@@ -1,4 +1,4 @@
-from database.main.display_name_manager import (
+from database.main.user.display_name_manager import (
     get_or_create_display_source
 )
 

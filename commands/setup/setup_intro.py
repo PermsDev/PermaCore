@@ -1,14 +1,14 @@
-import asyncio
-
 import discord
-
-from views.intro.panel.embed import intro_embed
 
 from database.core.channel_manager import (
     get_channel,
     set_channel
 )
+
+from views.intro.panel.embed import intro_embed
 from views.intro.panel.intro_panel import IntroPanel
+
+INTRO_CHANNEL_KEY = "intro_channel"
 
 async def setup_intro(
     bot,
@@ -33,7 +33,7 @@ async def setup_intro(
 
     old_data = await get_channel(
         interaction.guild.id,
-        "INTRO_CHANNEL"
+        INTRO_CHANNEL_KEY
     )
 
     if old_data:
@@ -78,7 +78,7 @@ async def setup_intro(
     # =====================================    
     await set_channel(
         interaction.guild.id,
-        "INTRO_CHANNEL",
+        INTRO_CHANNEL_KEY,
         channel.id,
         msg.id
     )

@@ -4,6 +4,7 @@ from database.core.channel_manager import (
     set_channel
 )
 
+WELCOME_CHANNEL_KEY = "welcome_channel"
 
 async def setup_welcome(
     interaction: discord.Interaction,
@@ -26,7 +27,7 @@ async def setup_welcome(
     # =====================================
     await set_channel(
         interaction.guild.id,
-        "WELCOME_CHANNEL",
+        WELCOME_CHANNEL_KEY,
         channel.id
     )
 

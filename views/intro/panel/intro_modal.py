@@ -17,7 +17,7 @@ from database.core.intro_manager import (
     save_user_profile
 )
 
-from database.main.display_name_manager import (
+from database.main.user.display_name_manager import (
     get_or_create_display_source,
     set_display_source
 )

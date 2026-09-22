@@ -6,7 +6,7 @@ from commands.setup.setup_intro import setup_intro
 from commands.setup.setup_league import setup_league
 from commands.setup.feedback import setup_feedback
 from commands.setup.log import setup_log
-from commands.setup.welcome import setup_welcome
+from commands.setup.setup_welcome import setup_welcome
 from commands.setup.setup_guild import setup_guildManage
 
 
@@ -129,7 +129,6 @@ class Setup(commands.Cog):
     ):
 
         await setup_guildManage(
-            bot=self.bot,
             interaction=interaction,
             channel=channel
         )

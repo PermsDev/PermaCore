@@ -6,6 +6,7 @@ from database.core.guild_message_manager import (
     get_guild_message,
     upsert_guild_message
 )
+from commands.setup.setup_welcome import WELCOME_CHANNEL_KEY
 
 # ========================
 # GAME DISPLAY NAMES
@@ -173,7 +174,7 @@ async def process_welcome(member: discord.Member):
 
     guild = member.guild
 
-    channel_data = await get_channel(guild.id, "WELCOME_CHANNEL")
+    channel_data = await get_channel(guild.id, WELCOME_CHANNEL_KEY)
     if not channel_data:
         return
 
