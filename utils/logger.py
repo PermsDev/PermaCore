@@ -1,6 +1,8 @@
 import discord
 from datetime import datetime
 from database.core.channel_manager import get_channel
+from commands.setup.log import LOG_CHANNEL_KEY
+
 
 # ======================
 # SEND LOG
@@ -18,7 +20,7 @@ async def send_log(
 
         log_data = await get_channel(
             guild.id,
-            "LOG_CHANNEL"
+            LOG_CHANNEL_KEY
         )
 
         if not log_data:

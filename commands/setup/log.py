@@ -6,6 +6,8 @@ from database.core.channel_manager import (
     set_channel
 )
 
+LOG_CHANNEL_KEY = "log_channel"
+
 
 async def setup_log(
     interaction: discord.Interaction,
