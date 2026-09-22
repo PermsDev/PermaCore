@@ -33,17 +33,9 @@ class CopyButton(discord.ui.Button):
 
         _, game_key, target_user_id = parts
 
-        # =========================
-        # GET INTRO DATA
-        # =========================
-
         intro_data = await get_user_intro(
             int(target_user_id)
         )
-
-        # =========================
-        # FIND GAME DATA
-        # =========================
 
         game_data = next(
             (
@@ -55,28 +47,18 @@ class CopyButton(discord.ui.Button):
         )
 
         if not game_data or not game_data.get("value"):
-
             await interaction.response.send_message(
                 "❌ Data tidak ditemukan.",
                 ephemeral=True
             )
-
             return
 
         value = game_data["value"]
-
-        # =========================
-        # GAME NAME
-        # =========================
 
         game_names = {
             "mlbb": "Mobile Legends ID",
             "roblox": "Roblox Username"
         }
-
-        # =========================
-        # EMBED
-        # =========================
 
         embed = discord.Embed(
             title=game_names.get(
@@ -90,10 +72,6 @@ class CopyButton(discord.ui.Button):
         embed.set_footer(
             text="Klik kanan / tekan lama untuk copy"
         )
-
-        # =========================
-        # RESPONSE
-        # =========================
 
         await interaction.response.send_message(
             embed=embed,
