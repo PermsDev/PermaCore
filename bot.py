@@ -79,6 +79,8 @@ class MyBot(commands.Bot):
         self.heartbeat = None
         self.heartbeat_task = None
         self.delete_task = None
+        
+        self.copy_views_registered = False
 
     async def setup_hook(self):
 
@@ -97,7 +99,7 @@ class MyBot(commands.Bot):
         self.add_view(ExecutiveInfoView("executive_guild"))
         self.add_view(ExecutiveInfoView("executive_sinyalid"))
 
-        await register_persistent_views(self)
+        # await register_persistent_views(self)
 
         # ======================
         # RESTORE VIEWS
@@ -157,6 +159,17 @@ bot = MyBot(
 # ======================
 @bot.event
 async def on_ready():
+    
+    # ======================
+    # REGISTER PERSISTENT COPY VIEWS
+    # ======================
+    if not bot.copy_views_registered:
+
+        await register_persistent_views(bot)
+
+        bot.copy_views_registered = True
+
+        print("[Persistent Views] Copy views registered.")
     
     # ======================
     # REGISTER BOT
