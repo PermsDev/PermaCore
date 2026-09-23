@@ -89,5 +89,7 @@ async def setup_guildManage(
     # RESPONSE
     # ==================================================
     await interaction.response.send_message(
-        f"Panel Guild Management dibuat di {channel.mention}"
+        f"Panel Guild Management dibuat di {channel.mention}",
+        ephemeral=True
     )
+    
