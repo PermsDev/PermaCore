@@ -14,12 +14,13 @@ from services.bots import (
     HeartbeatTask
 )
 
+from services.bots.env_service import can_interact_with_user
 from utils.delete_scheduler import delete_checker
 
-from views.intro.copyValue.register import register_persistent_views
 from views.feedback import FeedbackButton, ReplyView
 from views.executive.message.executive_info_view import ExecutiveInfoView
 
+from views.intro.copyValue.register import register_persistent_views
 from views.intro.panel.intro_panel import IntroPanel
 
 from database.main.guild_key_manager import get_guild_ids, is_main_guild
@@ -315,26 +316,17 @@ async def on_member_update(before, after):
     after_has_pangkat = has_pangkat(after, role_groups)
 
     # =========================
-    # FIRST WELCOME
+    # WELCOME PROCESS
     # =========================
-    # Sebelumnya tidak punya pangkat
-    # Sekarang punya pangkat
-    if not before_has_pangkat and after_has_pangkat:
-        await process_welcome(after)
-        return
+    if can_interact_with_user(after.id):
 
-    # =========================
-    # UPDATE WELCOME
-    # =========================
-    # Hanya user yang sudah punya pangkat
-    if after_has_pangkat:
-
-        if has_role_group_change(
-            before,
-            after,
-            role_groups
-        ):
+        if not before_has_pangkat and after_has_pangkat:
             await process_welcome(after)
+            return
+
+        if after_has_pangkat:
+            if has_role_group_change(before, after, role_groups):
+                await process_welcome(after)
 
     # =========================
     # EXECUTIVE NICKNAME CHECK
@@ -358,10 +350,7 @@ async def on_command_error(
 
     raise error
 
-setup_log_filters(
-    production=is_production(),
-    development=is_development()
-)
+setup_log_filters(production=is_production(), development=is_development())
 
 # ======================
 # RUN BOT
