@@ -1,5 +1,7 @@
 import discord
 
+from database.guild.save_top_clash import save_top_clash
+
 
 class TopClashView(discord.ui.View):
 
@@ -99,7 +101,41 @@ class TopClashView(discord.ui.View):
         button: discord.ui.Button
     ):
 
-        await interaction.response.send_message(
-            "💾 Fitur simpan ke database belum dibuat.",
+        await interaction.response.defer(
             ephemeral=True
+        )
+
+        try:
+
+            result = await save_top_clash(
+                growids=self.growids,
+                user_ids=self.user_ids
+            )
+
+        except Exception as error:
+
+            print(
+                f"[Event Clash] Gagal menyimpan: {error}"
+            )
+
+            await interaction.followup.send(
+                "❌ Terjadi kesalahan saat menyimpan "
+                "hasil Event Clash.",
+                ephemeral=True
+            )
+
+            return
+
+        # Matikan semua tombol setelah berhasil disimpan
+        for child in self.children:
+            child.disabled = True
+
+        await interaction.edit_original_response(
+            content=(
+                "✅ **Event Clash berhasil disimpan.**\n\n"
+                f"Series ID: `{result['series_id']}`\n"
+                f"Clash ID: `{result['clash_id']}`\n"
+                f"Tanggal: `{result['event_date']}`"
+            ),
+            view=self
         )

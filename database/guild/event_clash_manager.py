@@ -1,16 +1,18 @@
+from datetime import date
+
 from database.database import get_guild_pool as get_pool
 
 
 # =========================================================
-# EVENT CLASH SEASON
+# EVENT CLASH SERIES
 # =========================================================
 
 # ======================
-# GET SEASON
+# GET SERIES
 # ======================
 
-async def get_season(
-    season_id: int
+async def get_series(
+    series_id: int
 ):
     pool = get_pool()
 
@@ -20,19 +22,19 @@ async def get_season(
             await cursor.execute(
                 """
                 SELECT
-                    season_id,
-                    season_name,
+                    series_id,
+                    series_name,
                     start_date,
                     end_date,
                     status,
                     created_at,
                     updated_at
-                FROM event_clash_season
-                WHERE season_id = %s
+                FROM event_clash_series
+                WHERE series_id = %s
                 LIMIT 1
                 """,
                 (
-                    season_id,
+                    series_id,
                 )
             )
 
@@ -42,11 +44,11 @@ async def get_season(
 
 
 # ======================
-# GET SEASON BY NAME
+# GET SERIES BY NAME
 # ======================
 
-async def get_season_by_name(
-    season_name: str
+async def get_series_by_name(
+    series_name: str
 ):
     pool = get_pool()
 
@@ -56,19 +58,19 @@ async def get_season_by_name(
             await cursor.execute(
                 """
                 SELECT
-                    season_id,
-                    season_name,
+                    series_id,
+                    series_name,
                     start_date,
                     end_date,
                     status,
                     created_at,
                     updated_at
-                FROM event_clash_season
-                WHERE season_name = %s
+                FROM event_clash_series
+                WHERE series_name = %s
                 LIMIT 1
                 """,
                 (
-                    season_name,
+                    series_name,
                 )
             )
 
@@ -78,10 +80,12 @@ async def get_season_by_name(
 
 
 # ======================
-# GET ACTIVE SEASON
+# GET SERIES BY DATE
 # ======================
 
-async def get_active_season():
+async def get_series_by_date(
+    target_date: date
+):
     pool = get_pool()
 
     async with pool.acquire() as conn:
@@ -90,16 +94,52 @@ async def get_active_season():
             await cursor.execute(
                 """
                 SELECT
-                    season_id,
-                    season_name,
+                    series_id,
+                    series_name,
                     start_date,
                     end_date,
                     status,
                     created_at,
                     updated_at
-                FROM event_clash_season
+                FROM event_clash_series
+                WHERE start_date <= %s
+                    AND end_date >= %s
+                LIMIT 1
+                """,
+                (
+                    target_date,
+                    target_date,
+                )
+            )
+
+            row = await cursor.fetchone()
+
+    return row
+
+
+# ======================
+# GET ACTIVE SERIES
+# ======================
+
+async def get_active_series():
+    pool = get_pool()
+
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
+
+            await cursor.execute(
+                """
+                SELECT
+                    series_id,
+                    series_name,
+                    start_date,
+                    end_date,
+                    status,
+                    created_at,
+                    updated_at
+                FROM event_clash_series
                 WHERE status = 'active'
-                ORDER BY season_id DESC
+                ORDER BY series_id DESC
                 LIMIT 1
                 """
             )
@@ -110,10 +150,10 @@ async def get_active_season():
 
 
 # ======================
-# GET ALL SEASONS
+# GET ALL SERIES
 # ======================
 
-async def get_all_seasons():
+async def get_all_series():
     pool = get_pool()
 
     async with pool.acquire() as conn:
@@ -122,15 +162,15 @@ async def get_all_seasons():
             await cursor.execute(
                 """
                 SELECT
-                    season_id,
-                    season_name,
+                    series_id,
+                    series_name,
                     start_date,
                     end_date,
                     status,
                     created_at,
                     updated_at
-                FROM event_clash_season
-                ORDER BY season_id DESC
+                FROM event_clash_series
+                ORDER BY series_id DESC
                 """
             )
 
@@ -140,11 +180,11 @@ async def get_all_seasons():
 
 
 # ======================
-# ADD SEASON
+# ADD SERIES
 # ======================
 
-async def add_season(
-    season_name: str,
+async def add_series(
+    series_name: str,
     start_date,
     end_date,
     status: str = "upcoming"
@@ -156,8 +196,8 @@ async def add_season(
 
             await cursor.execute(
                 """
-                INSERT INTO event_clash_season (
-                    season_name,
+                INSERT INTO event_clash_series (
+                    series_name,
                     start_date,
                     end_date,
                     status
@@ -165,27 +205,27 @@ async def add_season(
                 VALUES (%s, %s, %s, %s)
                 """,
                 (
-                    season_name,
+                    series_name,
                     start_date,
                     end_date,
                     status,
                 )
             )
 
-            season_id = cursor.lastrowid
+            series_id = cursor.lastrowid
 
         await conn.commit()
 
-    return season_id
+    return series_id
 
 
 # ======================
-# EDIT SEASON
+# EDIT SERIES
 # ======================
 
-async def edit_season(
-    season_id: int,
-    season_name: str,
+async def edit_series(
+    series_id: int,
+    series_name: str,
     start_date,
     end_date,
     status: str
@@ -197,20 +237,20 @@ async def edit_season(
 
             await cursor.execute(
                 """
-                UPDATE event_clash_season
+                UPDATE event_clash_series
                 SET
-                    season_name = %s,
+                    series_name = %s,
                     start_date = %s,
                     end_date = %s,
                     status = %s
-                WHERE season_id = %s
+                WHERE series_id = %s
                 """,
                 (
-                    season_name,
+                    series_name,
                     start_date,
                     end_date,
                     status,
-                    season_id,
+                    series_id,
                 )
             )
 
@@ -237,7 +277,7 @@ async def get_clash(
                 """
                 SELECT
                     clash_id,
-                    season_id,
+                    series_id,
                     clash_month,
                     clash_year,
                     event_date,
@@ -261,7 +301,7 @@ async def get_clash(
 # ======================
 
 async def get_clash_by_month(
-    season_id: int,
+    series_id: int,
     clash_month: int,
     clash_year: int
 ):
@@ -274,19 +314,19 @@ async def get_clash_by_month(
                 """
                 SELECT
                     clash_id,
-                    season_id,
+                    series_id,
                     clash_month,
                     clash_year,
                     event_date,
                     created_at
                 FROM event_clash
-                WHERE season_id = %s
+                WHERE series_id = %s
                     AND clash_month = %s
                     AND clash_year = %s
                 LIMIT 1
                 """,
                 (
-                    season_id,
+                    series_id,
                     clash_month,
                     clash_year,
                 )
@@ -298,11 +338,11 @@ async def get_clash_by_month(
 
 
 # ======================
-# GET SEASON CLASHES
+# GET SERIES CLASHES
 # ======================
 
-async def get_season_clashes(
-    season_id: int
+async def get_series_clashes(
+    series_id: int
 ):
     pool = get_pool()
 
@@ -313,19 +353,19 @@ async def get_season_clashes(
                 """
                 SELECT
                     clash_id,
-                    season_id,
+                    series_id,
                     clash_month,
                     clash_year,
                     event_date,
                     created_at
                 FROM event_clash
-                WHERE season_id = %s
+                WHERE series_id = %s
                 ORDER BY
                     clash_year ASC,
                     clash_month ASC
                 """,
                 (
-                    season_id,
+                    series_id,
                 )
             )
 
@@ -348,7 +388,7 @@ async def get_all_clashes():
                 """
                 SELECT
                     clash_id,
-                    season_id,
+                    series_id,
                     clash_month,
                     clash_year,
                     event_date,
@@ -370,7 +410,7 @@ async def get_all_clashes():
 # ======================
 
 async def add_clash(
-    season_id: int,
+    series_id: int,
     clash_month: int,
     clash_year: int,
     event_date=None
@@ -383,7 +423,7 @@ async def add_clash(
             await cursor.execute(
                 """
                 INSERT INTO event_clash (
-                    season_id,
+                    series_id,
                     clash_month,
                     clash_year,
                     event_date
@@ -391,7 +431,7 @@ async def add_clash(
                 VALUES (%s, %s, %s, %s)
                 """,
                 (
-                    season_id,
+                    series_id,
                     clash_month,
                     clash_year,
                     event_date,
@@ -664,18 +704,23 @@ async def edit_result(
 
         await conn.commit()
 
-# SEASON
-# ├── get_season()
-# ├── get_season_by_name()
-# ├── get_active_season()
-# ├── get_all_seasons()
-# ├── add_season()
-# └── edit_season()
+# =========================================================
+# STRUCTURE
+# =========================================================
+
+# SERIES
+# ├── get_series()
+# ├── get_series_by_name()
+# ├── get_series_by_date()
+# ├── get_active_series()
+# ├── get_all_series()
+# ├── add_series()
+# └── edit_series()
 
 # CLASH
 # ├── get_clash()
 # ├── get_clash_by_month()
-# ├── get_season_clashes()
+# ├── get_series_clashes()
 # ├── get_all_clashes()
 # ├── add_clash()
 # └── edit_clash()
@@ -687,3 +732,6 @@ async def edit_result(
 # ├── get_rank_result()
 # ├── add_result()
 # └── edit_result()
+
+# SAVE
+# └── save_top_clash()
