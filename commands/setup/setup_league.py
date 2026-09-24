@@ -1,7 +1,9 @@
+import os
+
+import aiohttp
 import discord
 
 from views.league.embed.panel import create_top_score_panel
-from views.league.views.top_score import TopScoreView
 
 
 async def setup_league(
@@ -16,12 +18,49 @@ async def setup_league(
         )
         return
 
-    embed = await create_top_score_panel()
+    components = await create_top_score_panel()
 
-    await channel.send(
-        embed=embed,
-        view=TopScoreView()
+    token = os.getenv("TOKEN")
+
+    url = (
+        f"https://discord.com/api/v10/"
+        f"channels/{channel.id}/messages"
     )
+
+    headers = {
+        "Authorization": f"Bot {token}",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "flags": 32768,
+        "components": [
+            {
+                "type": 17,
+                "accent_color": 15844367,
+                "spoiler": False,
+                "components": components
+            }
+        ]
+    }
+
+    async with aiohttp.ClientSession() as session:
+
+        async with session.post(
+            url,
+            headers=headers,
+            json=payload
+        ) as response:
+
+            if response.status not in (200, 201):
+                error = await response.text()
+
+                await interaction.response.send_message(
+                    f"Gagal membuat panel:\n```{error}```",
+                    ephemeral=True
+                )
+
+                return
 
     await interaction.response.send_message(
         f"Panel League dibuat di {channel.mention}"

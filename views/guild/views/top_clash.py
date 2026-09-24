@@ -1,5 +1,6 @@
 import discord
 
+from database.core.emoji_manager import get_emoji
 from database.guild.save_top_clash_manager import save_top_clash
 
 
@@ -26,10 +27,10 @@ class TopClashView(discord.ui.View):
 
         emojis = [
             "🥇",
-            "🥈",
-            "🥉",
-            "4️⃣",
-            "5️⃣"
+            get_emoji("medal_2"),
+            get_emoji("medal_3"),
+            get_emoji("medal_4"),
+            get_emoji("medal_5")
         ]
 
         for index, (growid, user_id) in enumerate(
