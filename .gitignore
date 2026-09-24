@@ -19,6 +19,8 @@ backup/
 
 # file
 cek.py
+cek1.py
+cek2.py
 
 # Migration folders
 migrasi database ke sqlite/
