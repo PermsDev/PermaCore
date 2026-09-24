@@ -1,6 +1,6 @@
 import discord
 
-from database.guild.save_top_clash import save_top_clash
+from database.guild.save_top_clash_manager import save_top_clash
 
 
 class TopClashView(discord.ui.View):

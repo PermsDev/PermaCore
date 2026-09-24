@@ -1,12 +1,21 @@
 import discord
 
-def create_league_panel() -> discord.Embed:
+from database.guild.event_clash_score_manager import (
+    get_top_total_score,
+    get_top_monthly_score
+)
 
-    return discord.Embed(
-        title="🏆 Perma Community League",
-        description=(
-            "Informasi dan pendaftaran League"
-            "akan tersedia di sini!"
-        ),
-        color=discord.Color.blue()
+from views.league.embed.top_score import (
+    create_top_score_embed
+)
+
+
+async def create_top_score_panel() -> discord.Embed:
+
+    total_scores = await get_top_total_score()
+    monthly_scores = await get_top_monthly_score()
+
+    return create_top_score_embed(
+        total_scores,
+        monthly_scores
     )

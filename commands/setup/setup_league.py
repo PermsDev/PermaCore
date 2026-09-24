@@ -1,6 +1,7 @@
 import discord
 
-from views.league.embed.panel import create_league_panel
+from views.league.embed.panel import create_top_score_panel
+from views.league.views.top_score import TopScoreView
 
 
 async def setup_league(
@@ -8,33 +9,19 @@ async def setup_league(
     interaction: discord.Interaction,
     channel: discord.TextChannel
 ):
-    """
-    Setup league panel.
-    """
-
-    # =====================================
-    # Cek permission admin
-    # =====================================
-
     if not interaction.user.guild_permissions.administrator:
-
         await interaction.response.send_message(
             "Tidak ada permission!",
             ephemeral=True
         )
         return
 
-    # =====================================
-    # Kirim panel
-    # =====================================
+    embed = await create_top_score_panel()
 
     await channel.send(
-        embed=create_league_panel()
+        embed=embed,
+        view=TopScoreView()
     )
-
-    # =====================================
-    # Response
-    # =====================================
 
     await interaction.response.send_message(
         f"Panel League dibuat di {channel.mention}"
