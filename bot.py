@@ -170,10 +170,8 @@ async def on_ready():
     if not bot.copy_views_registered:
 
         await register_persistent_views(bot)
-
+        
         bot.copy_views_registered = True
-
-        print("[Persistent Views] Copy views registered.")
     
     # ======================
     # REGISTER BOT

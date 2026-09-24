@@ -6,11 +6,18 @@ def create_top_score_components(
     monthly_scores: list[dict]
 ) -> list[dict]:
     
-    MEDAL_1 = get_emoji("medal_1")
-    MEDAL_2 = get_emoji("medal_2")
-    MEDAL_3 = get_emoji("medal_3")
-    MEDAL_4 = get_emoji("medal_4")
-    MEDAL_5 = get_emoji("medal_5")
+    MEDAL_1_EMOJI = get_emoji("medal_1")
+    MEDAL_2_EMOJI = get_emoji("medal_2")
+    MEDAL_3_EMOJI = get_emoji("medal_3")
+    MEDAL_4_EMOJI = get_emoji("medal_4")
+    MEDAL_5_EMOJI = get_emoji("medal_5")
+    
+    RANK_EMOJI = get_emoji("rank")
+    RANK_1_EMOJI = get_emoji("rank_1")
+    RANK_2_EMOJI = get_emoji("rank_2")
+    RANK_3_EMOJI = get_emoji("rank_3")
+    RANK_4_EMOJI = get_emoji("rank_4")
+    RANK_5_EMOJI = get_emoji("rank_5")
 
     components = []
 
@@ -36,15 +43,15 @@ def create_top_score_components(
             points = data["total_points"]
 
             if index == 1:
-                icon = MEDAL_1
+                icon = RANK_1_EMOJI
             elif index == 2:
-                icon = MEDAL_2
+                icon = RANK_2_EMOJI
             elif index == 3:
-                icon = MEDAL_3
+                icon = RANK_3_EMOJI
             elif index == 4:
-                icon = MEDAL_4
+                icon = RANK_4_EMOJI
             elif index == 5:
-                icon = MEDAL_5
+                icon = RANK_5_EMOJI
             else:
                 icon = f"**{index}.**"
 
@@ -59,7 +66,7 @@ def create_top_score_components(
     components.append({
         "type": 10,
         "content": (
-            "### 🏆 Top 5 Total Score\n\n"
+            f"## {RANK_EMOJI} Top 5 Total Score\n\n"
             + "\n".join(total_lines)
         )
     })
@@ -79,15 +86,15 @@ def create_top_score_components(
             points = data["points"]
 
             if rank == 1:
-                icon = MEDAL_1
+                icon = MEDAL_1_EMOJI
             elif rank == 2:
-                icon = MEDAL_2
+                icon = MEDAL_2_EMOJI
             elif rank == 3:
-                icon = MEDAL_3
+                icon = MEDAL_3_EMOJI
             elif rank == 4:
-                icon = MEDAL_4
+                icon = MEDAL_4_EMOJI
             elif rank == 5:
-                icon = MEDAL_5
+                icon = MEDAL_5_EMOJI
             else:
                 icon = f"**{rank}.**"
 
