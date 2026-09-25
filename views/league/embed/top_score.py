@@ -1,3 +1,5 @@
+from datetime import date
+
 from database.core.emoji_manager import get_emoji
 
 
@@ -115,6 +117,23 @@ def create_top_score_components(
     })
 
     if total_scores:
+        
+        series = total_scores[0]
+
+        series_name = series["series_name"]
+
+        start_date = series["start_date"]
+        end_date = series["end_date"]
+
+        if isinstance(start_date, str):
+            start_date = date.fromisoformat(start_date)
+
+        if isinstance(end_date, str):
+            end_date = date.fromisoformat(end_date)
+
+        start_year = start_date.year
+        end_year = end_date.year
+        
         components.append({
             "type": 14,
             "divider": True,
@@ -124,7 +143,7 @@ def create_top_score_components(
         components.append({
             "type": 10,
             "content": (
-                f"-# 🏆 {total_scores[0]['series_name']}"
+                f"-# 🏆  {series_name} · {start_year} ~ {end_year}"
             )
         })
 
