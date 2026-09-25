@@ -1,2 +1,0 @@
-from views.league.buttons.MoreMonthlyScoreButton import MoreMonthlyScoreButton
-from views.league.buttons.MoreTotalScoreButton import MoreTotalScoreButton

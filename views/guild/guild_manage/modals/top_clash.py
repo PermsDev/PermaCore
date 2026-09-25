@@ -1,7 +1,7 @@
 import discord
 
 from database.main.game_manager import get_user_id_by_game_value
-from views.guild.views.top_clash import TopClashView
+from views.guild.guild_manage.views.top_clash import TopClashView
 
 
 class TopClashModal(discord.ui.Modal, title="Event Clash - Top 5"):

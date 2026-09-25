@@ -1,6 +1,6 @@
 import discord
 
-from views.guild.modals import TopClashModal
+from views.guild.guild_manage.modals import TopClashModal
 
 
 class TopClashButton(discord.ui.Button):

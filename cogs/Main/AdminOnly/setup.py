@@ -3,7 +3,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from commands.setup.setup_intro import setup_intro
-from commands.setup.setup_league import setup_league
+# from commands.setup.setup_league import setup_league
 from commands.setup.feedback import setup_feedback
 from commands.setup.log import setup_log
 from commands.setup.setup_welcome import setup_welcome
@@ -45,18 +45,18 @@ class Setup(commands.Cog):
     # ======================
     # SETUP LEAGUE
     # ======================
-    @setup.command(name="league", description="Set channel league | Admin only")
-    async def league(
-        self,
-        interaction: discord.Interaction,
-        channel: discord.TextChannel
-    ):
+    # @setup.command(name="league", description="Set channel league | Admin only")
+    # async def league(
+    #     self,
+    #     interaction: discord.Interaction,
+    #     channel: discord.TextChannel
+    # ):
 
-        await setup_league(
-            bot=self.bot,
-            interaction=interaction,
-            channel=channel
-        )
+    #     await setup_league(
+    #         bot=self.bot,
+    #         interaction=interaction,
+    #         channel=channel
+    #     )
 
     # ======================
     # SETUP FEEDBACK

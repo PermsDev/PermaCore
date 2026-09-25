@@ -84,7 +84,7 @@ class TopClashView(discord.ui.View):
         button: discord.ui.Button
     ):
 
-        from views.guild.modals.top_clash import TopClashEditModal
+        from views.guild.guild_manage.modals.top_clash import TopClashEditModal
 
         await interaction.response.send_modal(
             TopClashEditModal(self)

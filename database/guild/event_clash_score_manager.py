@@ -224,10 +224,10 @@ async def get_top_total_score() -> list[dict]:
 
             # print("[Event Clash] Total Score:")
 
-            for data in result:
-                print(
-                    f"{data['growid']} - {data['total_points']}"
-                )
+            # for data in result:
+            #     print(
+            #         f"{data['growid']} - {data['total_points']}"
+            #     )
 
             return result
 
@@ -324,9 +324,9 @@ async def get_top_monthly_score() -> list[dict]:
 
             # print("[Event Clash] Monthly Score:")
 
-            for data in result:
-                print(
-                    f"{data['growid']} - {data['points']}"
-                )
+            # for data in result:
+            #     print(
+            #         f"{data['growid']} - {data['points']}"
+            #     )
 
             return result

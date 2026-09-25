@@ -3,7 +3,7 @@ from database.guild.event_clash_score_manager import (
     get_top_monthly_score
 )
 
-from views.league.embed.top_score import (
+from views.guild.league.embed.top_score import (
     create_top_score_components
 )
 
