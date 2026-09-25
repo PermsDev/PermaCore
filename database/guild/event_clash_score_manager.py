@@ -133,16 +133,14 @@ async def get_top_total_score(
                     "points": points
                 }
 
-            clash_keys = sorted({
-                (
-                    row[1],
-                    row[2]
-                )
-                for row in clash_rows
-            })
-
             clash_keys = sorted(
-                clash_keys,
+                {
+                    (
+                        row[1],
+                        row[2]
+                    )
+                    for row in clash_rows
+                },
                 key=lambda value: (
                     value[1],
                     value[0]
