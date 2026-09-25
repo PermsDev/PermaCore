@@ -40,7 +40,7 @@ def create_top_score_components(
     total_lines = []
 
     if total_scores:
-        for index, data in enumerate(total_scores, start=1):
+        for index, data in enumerate(total_scores[:5], start=1):
             growid = data["growid"] or "Unknown"
             points = data["total_points"]
 
@@ -82,7 +82,7 @@ def create_top_score_components(
     monthly_lines = []
 
     if monthly_scores:
-        for data in monthly_scores:
+        for data in monthly_scores[:5]:
             rank = data["rank_position"]
             growid = data["growid"] or "Unknown"
             points = data["points"]
