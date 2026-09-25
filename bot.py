@@ -54,6 +54,7 @@ from events.member_role_update import (
     has_role_group_change,
     process_welcome
 )
+from views.league.views import TopScoreView
 
 # ======================
 # LOAD ENV
@@ -102,6 +103,7 @@ class MyBot(commands.Bot):
         self.add_view(ExecutiveInfoView("executive_sinyalid"))
         
         self.add_view(GuildManageView())
+        self.add_view(TopScoreView())
 
         # await register_persistent_views(self)
 
