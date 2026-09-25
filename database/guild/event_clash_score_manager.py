@@ -222,7 +222,7 @@ async def get_top_total_score() -> list[dict]:
                 for identity, data in player_list
             ]
 
-            print("[Event Clash] Total Score:")
+            # print("[Event Clash] Total Score:")
 
             for data in result:
                 print(
@@ -322,7 +322,7 @@ async def get_top_monthly_score() -> list[dict]:
                 for row in rows
             ]
 
-            print("[Event Clash] Monthly Score:")
+            # print("[Event Clash] Monthly Score:")
 
             for data in result:
                 print(
