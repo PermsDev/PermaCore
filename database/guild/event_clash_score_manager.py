@@ -174,7 +174,7 @@ async def get_top_total_score(
                     {}
                 )
 
-                for clash_key in reversed(clash_keys):
+                for clash_key in clash_keys:
 
                     clash = user_clashes.get(
                         clash_key
