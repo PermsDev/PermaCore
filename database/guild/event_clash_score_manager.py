@@ -2,10 +2,6 @@ from datetime import date
 
 from database.database import get_guild_pool as get_pool
 
-from datetime import date
-
-from database.database import get_guild_pool as get_pool
-
 
 async def get_top_total_score(
     limit: int = 5
@@ -54,11 +50,9 @@ async def get_top_total_score(
                 """
                 SELECT
                     ecr.user_id,
-                    COALESCE(
-                        gdb.value,
-                        MAX(ecr.growid)
-                    ) AS growid,
-                    SUM(ecp.points) AS total_points
+                    ecr.growid,
+                    gdb.value,
+                    ecp.points
                 FROM event_clash_result ecr
                 INNER JOIN event_clash ec
                     ON ec.clash_id = ecr.clash_id
@@ -68,26 +62,56 @@ async def get_top_total_score(
                     ON gdb.user_id = ecr.user_id
                     AND gdb.game_key = 'growtopia'
                 WHERE ec.series_id = %s
-                GROUP BY
-                    ecr.user_id,
-                    gdb.value
                 ORDER BY
-                    total_points DESC
+                    ec.clash_year ASC,
+                    ec.clash_month ASC
                 """,
                 (
                     series_id,
                 )
             )
 
-            players = await cursor.fetchall()
+            rows = await cursor.fetchall()
 
-            if not players:
+            if not rows:
                 return []
+
+            players = {}
+
+            clash_map = {}
+
+            clash_keys = set()
+
+            for row in rows:
+
+                user_id = row[0]
+                entered_growid = row[1]
+                database_growid = row[2]
+                points = row[3]
+
+                identity = (
+                    ("user", user_id)
+                    if user_id is not None
+                    else ("growid", entered_growid)
+                )
+
+                if identity not in players:
+                    players[identity] = {
+                        "user_id": user_id,
+                        "growid": (
+                            database_growid
+                            or entered_growid
+                        ),
+                        "total_points": 0
+                    }
+
+                players[identity]["total_points"] += points
 
             await cursor.execute(
                 """
                 SELECT
                     ecr.user_id,
+                    ecr.growid,
                     ec.clash_month,
                     ec.clash_year,
                     ecr.rank_position,
@@ -100,8 +124,7 @@ async def get_top_total_score(
                 WHERE ec.series_id = %s
                 ORDER BY
                     ec.clash_year ASC,
-                    ec.clash_month ASC,
-                    ecr.user_id ASC
+                    ec.clash_month ASC
                 """,
                 (
                     series_id,
@@ -110,53 +133,52 @@ async def get_top_total_score(
 
             clash_rows = await cursor.fetchall()
 
-            clash_map = {}
-
             for row in clash_rows:
 
                 user_id = row[0]
-                clash_month = row[1]
-                clash_year = row[2]
-                rank_position = row[3]
-                points = row[4]
+                growid = row[1]
+                clash_month = row[2]
+                clash_year = row[3]
+                rank_position = row[4]
+                points = row[5]
+
+                identity = (
+                    ("user", user_id)
+                    if user_id is not None
+                    else ("growid", growid)
+                )
 
                 clash_key = (
                     clash_year,
                     clash_month
                 )
 
-                if user_id not in clash_map:
-                    clash_map[user_id] = {}
+                clash_keys.add(clash_key)
 
-                clash_map[user_id][clash_key] = {
+                if identity not in clash_map:
+                    clash_map[identity] = {}
+
+                clash_map[identity][clash_key] = {
                     "rank_position": rank_position,
                     "points": points
                 }
 
-            clash_keys = sorted(
-                {
-                    (
-                        row[1],
-                        row[2]
-                    )
-                    for row in clash_rows
-                },
-                key=lambda value: (
-                    value[1],
-                    value[0]
-                )
-            )
+            clash_keys = sorted(clash_keys)
 
-            def get_rank_key(user_id):
+            def get_rank_key(identity):
 
                 result = []
 
+                user_clashes = clash_map.get(
+                    identity,
+                    {}
+                )
+
                 for clash_key in reversed(clash_keys):
 
-                    clash = clash_map.get(
-                        user_id,
-                        {}
-                    ).get(clash_key)
+                    clash = user_clashes.get(
+                        clash_key
+                    )
 
                     if clash is None:
                         result.append(
@@ -175,34 +197,43 @@ async def get_top_total_score(
 
                 return result
 
-            players.sort(
-                key=lambda row: (
-                    -row[2],
+            player_list = list(
+                players.values()
+            )
+
+            identity_map = {
+                identity: data
+                for identity, data in players.items()
+            }
+
+            player_list = sorted(
+                identity_map.items(),
+                key=lambda item: (
+                    -item[1]["total_points"],
                     [
                         (
                             -points,
                             rank
                         )
-                        for points, rank in get_rank_key(row[0])
+                        for points, rank in get_rank_key(item[0])
                     ]
                 )
             )
 
-            players = players[:limit]
+            player_list = player_list[:limit]
 
             return [
                 {
-                    "user_id": row[0],
-                    "growid": row[1],
-                    "total_points": row[2],
+                    "user_id": data["user_id"],
+                    "growid": data["growid"],
+                    "total_points": data["total_points"],
                     "series_id": series_id,
                     "series_name": series_name,
                     "start_date": start_date,
                     "end_date": end_date,
                 }
-                for row in players
+                for identity, data in player_list
             ]
-            
             
 async def get_top_monthly_score(
     limit: int = 5
