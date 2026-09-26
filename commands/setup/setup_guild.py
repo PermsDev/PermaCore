@@ -6,7 +6,7 @@ from database.core.channel_manager import (
 )
 
 from views.guild.guild_manage.guild_panel import create_guild_manage_panel
-from views.guild.guild_view import GuildView
+from views.guild.guild_view import GuildManageView
 
 
 GUILD_MANAGE_CHANNEL_KEY = "guild_manage_channel"
@@ -72,7 +72,7 @@ async def setup_guildManage(
     # ==================================================
     message = await channel.send(
         embed=create_guild_manage_panel(),
-        view=GuildView()
+        view=GuildManageView()
     )
 
     # ==================================================

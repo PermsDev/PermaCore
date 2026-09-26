@@ -20,7 +20,7 @@ from utils.delete_scheduler import delete_checker
 from views.feedback import FeedbackButton, ReplyView
 from views.executive.message.executive_info_view import ExecutiveInfoView
 
-from views.guild.guild_view import GuildView
+from views.guild.guild_view import GuildManageView, GuildClashView
 from views.intro.copyValue.register import register_persistent_views
 from views.intro.panel.intro_panel import IntroPanel
 
@@ -101,7 +101,9 @@ class MyBot(commands.Bot):
         self.add_view(ExecutiveInfoView("executive_guild"))
         self.add_view(ExecutiveInfoView("executive_sinyalid"))
         
-        self.add_view(GuildView())
+        self.add_view(GuildManageView())
+        self.add_view(GuildClashView())
+        await self.load_extension("listeners.league")
 
         # await register_persistent_views(self)
 

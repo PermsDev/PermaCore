@@ -80,14 +80,7 @@ async def sync_league(
 
     payload = {
         "flags": 32768,
-        "components": [
-            {
-                "type": 17,
-                "accent_color": 15844367,
-                "spoiler": False,
-                "components": components
-            }
-        ]
+        "components": components
     }
 
     async with aiohttp.ClientSession() as session:
@@ -117,6 +110,8 @@ async def sync_league(
         panel_message=new_message_id
     )
 
-    await ctx.send(
+    message = await ctx.send(
         f"Panel League berhasil disync di {channel.mention}."
     )
+
+    await message.delete(delay=5)

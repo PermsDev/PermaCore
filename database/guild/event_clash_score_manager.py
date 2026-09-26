@@ -3,15 +3,15 @@ from datetime import date
 from database.database import get_guild_pool as get_pool
 
 
-async def get_top_total_score() -> list[dict]:
+async def get_top_total_score(
+    series_id: int
+) -> list[dict]:
 
     pool = get_pool()
 
     async with pool.acquire() as conn:
 
         async with conn.cursor() as cursor:
-
-            today = date.today()
 
             await cursor.execute(
                 """
@@ -21,26 +21,23 @@ async def get_top_total_score() -> list[dict]:
                     ecs.start_date,
                     ecs.end_date
                 FROM event_clash_series ecs
-                WHERE ecs.start_date <= %s
-                    AND ecs.end_date >= %s
-                    AND ecs.status = 'active'
-                ORDER BY
-                    ecs.series_id DESC
+                WHERE ecs.series_id = %s
                 LIMIT 1
                 """,
                 (
-                    today,
-                    today,
+                    series_id,
                 )
             )
 
             series = await cursor.fetchone()
 
             if series is None:
-                print("[Event Clash] Total Score: Tidak ada active series.")
+                print(
+                    f"[Event Clash] Total Score: "
+                    f"Series {series_id} tidak ditemukan."
+                )
                 return []
 
-            series_id = series[0]
             series_name = series[1]
             start_date = series[2]
             end_date = series[3]
@@ -73,7 +70,10 @@ async def get_top_total_score() -> list[dict]:
             rows = await cursor.fetchall()
 
             if not rows:
-                print("[Event Clash] Total Score: Tidak ada data.")
+                print(
+                    f"[Event Clash] Total Score: "
+                    f"Tidak ada data di Series {series_id}."
+                )
                 return []
 
             players = {}
@@ -204,7 +204,8 @@ async def get_top_total_score() -> list[dict]:
                             -points,
                             rank
                         )
-                        for points, rank in get_rank_key(item[0])
+                        for points, rank
+                        in get_rank_key(item[0])
                     ]
                 )
             )
@@ -222,17 +223,12 @@ async def get_top_total_score() -> list[dict]:
                 for identity, data in player_list
             ]
 
-            # print("[Event Clash] Total Score:")
-
-            # for data in result:
-            #     print(
-            #         f"{data['growid']} - {data['total_points']}"
-            #     )
-
             return result
 
 
-async def get_top_monthly_score() -> list[dict]:
+async def get_top_monthly_score(
+    series_id: int
+) -> list[dict]:
 
     pool = get_pool()
 
@@ -255,6 +251,7 @@ async def get_top_monthly_score() -> list[dict]:
                     ON ecs.series_id = ec.series_id
                 WHERE ec.clash_month = %s
                     AND ec.clash_year = %s
+                    AND ec.series_id = %s
                     AND ecs.start_date <= %s
                     AND ecs.end_date >= %s
                 ORDER BY
@@ -264,6 +261,7 @@ async def get_top_monthly_score() -> list[dict]:
                 (
                     today.month,
                     today.year,
+                    series_id,
                     today,
                     today,
                 )
@@ -272,11 +270,13 @@ async def get_top_monthly_score() -> list[dict]:
             clash = await cursor.fetchone()
 
             if clash is None:
-                print("[Event Clash] Monthly Score: Tidak ada clash bulan ini.")
+                print(
+                    f"[Event Clash] Monthly Score: "
+                    f"Tidak ada clash bulan ini di Series {series_id}."
+                )
                 return []
 
             clash_id = clash[0]
-            series_id = clash[1]
             series_name = clash[2]
             start_date = clash[3]
             end_date = clash[4]
@@ -322,11 +322,5 @@ async def get_top_monthly_score() -> list[dict]:
                 for row in rows
             ]
 
-            # print("[Event Clash] Monthly Score:")
-
-            # for data in result:
-            #     print(
-            #         f"{data['growid']} - {data['points']}"
-            #     )
-
             return result
+        

@@ -7,7 +7,7 @@ from views.guild.league.buttons import (
 )
 
 
-class GuildView(discord.ui.View):
+class GuildManageView(discord.ui.View):
 
     def __init__(self):
         super().__init__(timeout=None)
@@ -15,6 +15,12 @@ class GuildView(discord.ui.View):
         self.add_item(
             TopClashButton()
         )
+        
+class GuildClashView(discord.ui.View):
+
+    def __init__(self):
+        super().__init__(timeout=None)
+
         self.add_item(
             MoreTotalScoreButton()
         )
