@@ -12,7 +12,7 @@ class MoreTotalScoreButton(discord.ui.Button):
 
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.send_message(
-            "Total Score More diklik.",
+            "Fitur masih dalam tahap pembuatan. Silakan tunggu pembaruan selanjutnya.",
             ephemeral=True
         )
 
