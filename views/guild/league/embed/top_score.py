@@ -78,7 +78,7 @@ def create_top_score_components(
                 {
                     "type": 10,
                     "content": (
-                        f"## 🏆 Top {total_limit} Total Score"
+                        f"### 🏆 Top {total_limit} Total Score"
                     )
                 }
             ],
