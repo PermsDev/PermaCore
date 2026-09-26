@@ -131,7 +131,7 @@ def create_top_score_components(
                 "components": [
                     {
                         "type": 10,
-                        "content": "## 📅 Top 5 Score Bulan Ini"
+                        "content": "### 📅 Top 5 Score Bulan Ini"
                     }
                 ],
                 "accessory": {
