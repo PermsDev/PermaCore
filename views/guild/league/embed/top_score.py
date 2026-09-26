@@ -30,7 +30,7 @@ def create_top_score_components(
         {
             "type": 10,
             "content": (
-                "# 🏆 Perma League\n"
+                f"# {rank_emoji} Perma League\n"
                 "Perma League adalah sistem kompetisi komunitas untuk "
                 "mencatat hasil, poin, peringkat, dan perkembangan pemain "
                 "dalam setiap series."
@@ -78,7 +78,7 @@ def create_top_score_components(
                 {
                     "type": 10,
                     "content": (
-                        f"## {rank_emoji} Top {total_limit} Total Score"
+                        f"## 🏆 Top {total_limit} Total Score"
                     )
                 }
             ],
