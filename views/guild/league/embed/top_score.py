@@ -43,12 +43,14 @@ def create_top_score_components(
         }
     ]
 
+    total_limit = 5 if monthly_scores else 10
+
     total_lines = []
 
     if total_scores:
 
         for index, data in enumerate(
-            total_scores[:5],
+            total_scores[:total_limit],
             start=1
         ):
 
@@ -76,7 +78,7 @@ def create_top_score_components(
                 {
                     "type": 10,
                     "content": (
-                        f"## {rank_emoji} Top 5 Total Score"
+                        f"## {rank_emoji} Top {total_limit} Total Score"
                     )
                 }
             ],
