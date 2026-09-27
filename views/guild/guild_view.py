@@ -2,7 +2,7 @@ import discord
 
 from views.guild.guild_manage.buttons import (
     TopClashButton, 
-    ChangeDoorPasswordButton
+    ChangePasswordButton
 )
 from views.guild.league.buttons import (
     MoreTotalScoreButton,
@@ -20,7 +20,7 @@ class GuildManageView(discord.ui.View):
         )
         
         self.add_item(
-            ChangeDoorPasswordButton()
+            ChangePasswordButton()
         )
 class GuildClashView(discord.ui.View):
 
