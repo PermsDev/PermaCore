@@ -4,42 +4,66 @@ from database.main.game_manager import get_user_id_by_game_value
 from views.guild.guild_manage.views.top_clash import TopClashView
 
 
-class TopClashModal(discord.ui.Modal, title="Event Clash - Top 5"):
+class TopClashModal(
+    discord.ui.Modal,
+    title="Event Clash - Top 5"
+):
 
-    top_1 = discord.ui.TextInput(
-        label="GrowID Top 1 Clash",
-        placeholder="Masukkan GrowID Top 1",
-        required=True,
-        max_length=50
-    )
+    def __init__(
+        self,
+        growids: list[str] | None = None,
+        user_ids: list[int | None] | None = None
+    ):
+        super().__init__()
 
-    top_2 = discord.ui.TextInput(
-        label="GrowID Top 2 Clash",
-        placeholder="Masukkan GrowID Top 2",
-        required=True,
-        max_length=50
-    )
+        self.growids = growids or ["", "", "", "", ""]
+        self.user_ids = user_ids or [None, None, None, None, None]
 
-    top_3 = discord.ui.TextInput(
-        label="GrowID Top 3 Clash",
-        placeholder="Masukkan GrowID Top 3",
-        required=True,
-        max_length=50
-    )
+        self.top_1 = discord.ui.TextInput(
+            label="GrowID Top 1 Clash",
+            placeholder="Masukkan GrowID Top 1",
+            required=True,
+            max_length=50,
+            default=self.growids[0]
+        )
 
-    top_4 = discord.ui.TextInput(
-        label="GrowID Top 4 Clash",
-        placeholder="Masukkan GrowID Top 4",
-        required=True,
-        max_length=50
-    )
+        self.top_2 = discord.ui.TextInput(
+            label="GrowID Top 2 Clash",
+            placeholder="Masukkan GrowID Top 2",
+            required=True,
+            max_length=50,
+            default=self.growids[1]
+        )
 
-    top_5 = discord.ui.TextInput(
-        label="GrowID Top 5 Clash",
-        placeholder="Masukkan GrowID Top 5",
-        required=True,
-        max_length=50
-    )
+        self.top_3 = discord.ui.TextInput(
+            label="GrowID Top 3 Clash",
+            placeholder="Masukkan GrowID Top 3",
+            required=True,
+            max_length=50,
+            default=self.growids[2]
+        )
+
+        self.top_4 = discord.ui.TextInput(
+            label="GrowID Top 4 Clash",
+            placeholder="Masukkan GrowID Top 4",
+            required=True,
+            max_length=50,
+            default=self.growids[3]
+        )
+
+        self.top_5 = discord.ui.TextInput(
+            label="GrowID Top 5 Clash",
+            placeholder="Masukkan GrowID Top 5",
+            required=True,
+            max_length=50,
+            default=self.growids[4]
+        )
+
+        self.add_item(self.top_1)
+        self.add_item(self.top_2)
+        self.add_item(self.top_3)
+        self.add_item(self.top_4)
+        self.add_item(self.top_5)
 
     async def on_submit(self, interaction: discord.Interaction):
 
@@ -54,6 +78,7 @@ class TopClashModal(discord.ui.Modal, title="Event Clash - Top 5"):
         user_ids = []
 
         for growid in growids:
+
             user_id = await get_user_id_by_game_value(
                 "growtopia",
                 growid

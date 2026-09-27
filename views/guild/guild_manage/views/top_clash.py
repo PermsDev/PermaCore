@@ -2,6 +2,7 @@ import discord
 
 from database.core.emoji_manager import get_emoji
 from database.guild.save_top_clash_manager import save_top_clash
+from services.guild.league.update_league_panel import update_league_panel
 
 
 class TopClashView(discord.ui.View):
@@ -113,6 +114,10 @@ class TopClashView(discord.ui.View):
                 user_ids=self.user_ids
             )
 
+            await update_league_panel(
+                guild_id=interaction.guild.id
+            )
+
         except Exception as error:
 
             print(
@@ -127,15 +132,14 @@ class TopClashView(discord.ui.View):
 
             return
 
-        # Matikan semua tombol setelah berhasil disimpan
         for child in self.children:
             child.disabled = True
 
         await interaction.edit_original_response(
             content=(
                 "✅ **Event Clash berhasil disimpan.**\n\n"
-                f"Series ID: `{result['series_id']}`\n"
-                f"Clash ID: `{result['clash_id']}`\n"
+                f"Series ID: `{result['series_name']}`\n"
+                # f"Clash ID: `{result['clash_id']}`\n"
                 f"Tanggal: `{result['event_date']}`"
             ),
             view=self
