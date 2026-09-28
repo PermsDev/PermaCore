@@ -1,6 +1,7 @@
 import discord
 
 from database.core.emoji_manager import get_emoji
+from views.guild.guild_manage.modals import ChangePasswordModal
 
 class ChangePasswordButton(discord.ui.Button):
 
@@ -18,7 +19,6 @@ class ChangePasswordButton(discord.ui.Button):
         interaction: discord.Interaction
     ):
 
-        await interaction.response.send_message(
-            "Fitur Change Password belum tersedia.",
-            ephemeral=True
+        await interaction.response.send_modal(
+            ChangePasswordModal()
         )
