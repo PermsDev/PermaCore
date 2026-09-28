@@ -131,6 +131,7 @@ async def save_top_clash(
 
                 else:
                     series_id = series[0]
+                    series_name = series[1]
 
                 # =================================================
                 # 4. PASTIKAN HANYA SERIES INI YANG ACTIVE
@@ -373,6 +374,7 @@ async def save_top_clash(
 
     return {
         "series_id": series_id,
+        "series_name": series_name,
         "clash_id": clash_id,
         "event_date": today,
     }

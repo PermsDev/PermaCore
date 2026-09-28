@@ -1,6 +1,7 @@
 import discord
 
 from database.core.emoji_manager import get_emoji
+from database.guild.door_password_manager import get_door_password
 from database.guild.save_top_clash_manager import save_top_clash
 from services.guild.league.update_league_panel import update_league_panel
 
@@ -138,9 +139,66 @@ class TopClashView(discord.ui.View):
         await interaction.edit_original_response(
             content=(
                 "✅ **Event Clash berhasil disimpan.**\n\n"
-                f"Series ID: `{result['series_name']}`\n"
-                # f"Clash ID: `{result['clash_id']}`\n"
+                f"Series: `{result['series_name']}`\n"
                 f"Tanggal: `{result['event_date']}`"
             ),
             view=self
         )
+
+        guild_id = interaction.guild.id
+
+        for index, user_id in enumerate(self.user_ids):
+
+            if user_id is None:
+                continue
+
+            user = interaction.guild.get_member(user_id)
+
+            if user is None:
+                continue
+
+            pass_id = index + 1
+
+            door = await get_door_password(
+                guild_id=guild_id,
+                pass_id=pass_id
+            )
+
+            if door is None:
+                print(
+                    f"[Event Clash] Door password {pass_id} tidak ditemukan."
+                )
+                continue
+
+            if door["pass_door"] is None:
+                print(
+                    f"[Event Clash] Password door {pass_id} belum tersedia."
+                )
+                continue
+
+            try:
+
+                await user.send(
+                    f"**🔐 Door Password**\n\n"
+                    f"World: `{door['world_name']}`\n"
+                    f"Door: `{door['name_door']}`\n"
+                    f"Password: `{door['pass_door']}`"
+                )
+
+            except discord.Forbidden:
+
+                print(
+                    f"[Event Clash] DM tidak dapat dikirim "
+                    f"ke {user}."
+                )
+
+                continue
+
+            except discord.HTTPException as error:
+
+                print(
+                    f"[Event Clash] Gagal mengirim DM "
+                    f"ke {user}: {error}"
+                )
+
+                continue

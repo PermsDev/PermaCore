@@ -78,13 +78,30 @@ async def get_door_password(
             if row is None:
                 return None
 
+            if row[4] is not None and not bool(row[5]):
+
+                await cursor.execute(
+                    """
+                    UPDATE guild_door_password
+                    SET is_shared = 1
+                    WHERE guild_id = %s
+                    AND pass_id = %s
+                    """,
+                    (
+                        guild_id,
+                        pass_id
+                    )
+                )
+
+                await conn.commit()
+
             return {
                 "pass_id": row[0],
                 "guild_id": row[1],
                 "world_name": row[2],
                 "name_door": row[3],
                 "pass_door": decrypt_password(row[4]),
-                "is_shared": bool(row[5]),
+                "is_shared": True if row[4] is not None else False,
                 "created_at": row[6],
                 "updated_at": row[7]
             }
@@ -132,40 +149,4 @@ async def update_door_password(
         guild_id=guild_id,
         pass_id=pass_id
     )
-
-
-async def update_door_shared(
-    guild_id: int,
-    pass_id: int
-) -> dict | None:
-
-    pool = get_pool()
-
-    async with pool.acquire() as conn:
-
-        async with conn.cursor() as cursor:
-
-            await cursor.execute(
-                """
-                UPDATE guild_door_password
-                SET
-                    is_shared = 1
-                WHERE guild_id = %s
-                AND pass_id = %s
-                """,
-                (
-                    guild_id,
-                    pass_id
-                )
-            )
-
-            if cursor.rowcount == 0:
-                await conn.rollback()
-                return None
-
-            await conn.commit()
-
-    return await get_door_password(
-        guild_id=guild_id,
-        pass_id=pass_id
-    )
+    
