@@ -69,7 +69,7 @@ class TopClashView(discord.ui.View):
             status = ""
 
             if self.shared_status[index] is True:
-                status = f" {get_emoji("week_pass")}"
+                status = f" {get_emoji('week_pass')}"
 
             lines.append(
                 f"{emojis[index]} Top {index + 1}: "
