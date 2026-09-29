@@ -91,6 +91,10 @@ class TopClashModal(
             user_ids=user_ids,
             owner_id=interaction.user.id
         )
+        
+        await view.load_shared_status(
+            guild_id=interaction.guild.id
+        )
 
         await interaction.response.send_message(
             view.get_content(),

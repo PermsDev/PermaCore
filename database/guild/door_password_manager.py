@@ -150,3 +150,35 @@ async def update_door_password(
         pass_id=pass_id
     )
     
+async def get_door_password_shared_status(
+    guild_id: int,
+    pass_id: int
+) -> bool | None:
+
+    pool = get_pool()
+
+    async with pool.acquire() as conn:
+
+        async with conn.cursor() as cursor:
+
+            await cursor.execute(
+                """
+                SELECT
+                    is_shared
+                FROM guild_door_password
+                WHERE guild_id = %s
+                AND pass_id = %s
+                LIMIT 1
+                """,
+                (
+                    guild_id,
+                    pass_id
+                )
+            )
+
+            row = await cursor.fetchone()
+
+            if row is None:
+                return None
+
+            return bool(row[0])

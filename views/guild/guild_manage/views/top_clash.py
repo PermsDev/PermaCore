@@ -1,7 +1,10 @@
 import discord
 
 from database.core.emoji_manager import get_emoji
-from database.guild.door_password_manager import get_door_password
+from database.guild.door_password_manager import (
+    get_door_password,
+    get_door_password_shared_status
+)
 from database.guild.save_top_clash_manager import save_top_clash
 from services.guild.league.update_league_panel import update_league_panel
 
@@ -20,6 +23,24 @@ class TopClashView(discord.ui.View):
         self.user_ids = user_ids
         self.owner_id = owner_id
 
+        self.shared_status: list[bool | None] = [
+            None
+        ] * len(growids)
+
+    async def load_shared_status(
+        self,
+        guild_id: int
+    ):
+
+        for index in range(len(self.growids)):
+
+            self.shared_status[index] = (
+                await get_door_password_shared_status(
+                    guild_id=guild_id,
+                    pass_id=index + 1
+                )
+            )
+
     def get_content(self) -> str:
 
         lines = [
@@ -28,7 +49,7 @@ class TopClashView(discord.ui.View):
         ]
 
         emojis = [
-            "🥇",
+            get_emoji("medal_1"),
             get_emoji("medal_2"),
             get_emoji("medal_3"),
             get_emoji("medal_4"),
@@ -42,12 +63,17 @@ class TopClashView(discord.ui.View):
             mention = (
                 f"<@{user_id}>"
                 if user_id
-                else "Tidak ditemukan"
+                else "User tidak ditemukan"
             )
+
+            status = ""
+
+            if self.shared_status[index] is True:
+                status = f" {get_emoji("week_pass")}"
 
             lines.append(
                 f"{emojis[index]} Top {index + 1}: "
-                f"`{growid}` → {mention}"
+                f"`{growid}` → {mention}{status}"
             )
 
         lines.extend([
@@ -86,7 +112,9 @@ class TopClashView(discord.ui.View):
         button: discord.ui.Button
     ):
 
-        from views.guild.guild_manage.modals.top_clash import TopClashEditModal
+        from views.guild.guild_manage.modals.top_clash import (
+            TopClashEditModal
+        )
 
         await interaction.response.send_modal(
             TopClashEditModal(self)
@@ -108,6 +136,8 @@ class TopClashView(discord.ui.View):
             ephemeral=True
         )
 
+        guild_id = interaction.guild.id
+
         try:
 
             result = await save_top_clash(
@@ -116,7 +146,7 @@ class TopClashView(discord.ui.View):
             )
 
             await update_league_panel(
-                guild_id=interaction.guild.id
+                guild_id=guild_id
             )
 
         except Exception as error:
@@ -136,17 +166,6 @@ class TopClashView(discord.ui.View):
         for child in self.children:
             child.disabled = True
 
-        await interaction.edit_original_response(
-            content=(
-                "✅ **Event Clash berhasil disimpan.**\n\n"
-                f"Series: `{result['series_name']}`\n"
-                f"Tanggal: `{result['event_date']}`"
-            ),
-            view=self
-        )
-
-        guild_id = interaction.guild.id
-
         for index, user_id in enumerate(self.user_ids):
 
             if user_id is None:
@@ -159,21 +178,41 @@ class TopClashView(discord.ui.View):
 
             pass_id = index + 1
 
+            is_shared = await get_door_password_shared_status(
+                guild_id=guild_id,
+                pass_id=pass_id
+            )
+
+            if is_shared is True:
+
+                print(
+                    f"[Event Clash] Door password {pass_id} "
+                    f"sudah diberikan. DM dilewati."
+                )
+
+                continue
+
             door = await get_door_password(
                 guild_id=guild_id,
                 pass_id=pass_id
             )
 
             if door is None:
+
                 print(
-                    f"[Event Clash] Door password {pass_id} tidak ditemukan."
+                    f"[Event Clash] Door password "
+                    f"{pass_id} tidak ditemukan."
                 )
+
                 continue
 
             if door["pass_door"] is None:
+
                 print(
-                    f"[Event Clash] Password door {pass_id} belum tersedia."
+                    f"[Event Clash] Password door "
+                    f"{pass_id} belum tersedia."
                 )
+
                 continue
 
             try:
@@ -192,8 +231,6 @@ class TopClashView(discord.ui.View):
                     f"ke {user}."
                 )
 
-                continue
-
             except discord.HTTPException as error:
 
                 print(
@@ -201,4 +238,12 @@ class TopClashView(discord.ui.View):
                     f"ke {user}: {error}"
                 )
 
-                continue
+        await interaction.edit_original_response(
+            content=(
+                "✅ **Event Clash berhasil disimpan.**\n\n"
+                f"Series: `{result['series_name']}`\n"
+                f"Tanggal: `{result['event_date']}`"
+            ),
+            view=self
+        )
+        
