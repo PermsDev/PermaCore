@@ -2,11 +2,15 @@ import discord
 
 from database.core.emoji_manager import get_emoji
 from database.guild.door_password_manager import (
-    get_door_password,
     get_door_password_shared_status
 )
 from database.guild.save_top_clash_manager import save_top_clash
+from database.guild.event_clash_score_manager import (
+    get_top_monthly_score,
+    get_top_total_score
+)
 from services.guild.league.update_league_panel import update_league_panel
+from views.guild.league.embed.send_clash_reward import send_clash_reward
 
 
 class TopClashView(discord.ui.View):
@@ -150,6 +154,14 @@ class TopClashView(discord.ui.View):
                 guild_id=guild_id
             )
 
+            monthly_scores = await get_top_monthly_score(
+                series_id=result["series_id"]
+            )
+
+            total_scores = await get_top_total_score(
+                series_id=result["series_id"]
+            )
+
         except Exception as error:
 
             print(
@@ -193,36 +205,66 @@ class TopClashView(discord.ui.View):
 
                 continue
 
-            door = await get_door_password(
-                guild_id=guild_id,
-                pass_id=pass_id
+            growid = self.growids[index]
+
+            monthly_data = next(
+                (
+                    row
+                    for row in monthly_scores
+                    if row["user_id"] == user_id
+                ),
+                None
             )
 
-            if door is None:
+            total_data = next(
+                (
+                    row
+                    for row in total_scores
+                    if row["user_id"] == user_id
+                ),
+                None
+            )
+
+            if monthly_data is None:
 
                 print(
-                    f"[Event Clash] Door password "
-                    f"{pass_id} tidak ditemukan."
+                    f"[Event Clash] Monthly score "
+                    f"user {user_id} tidak ditemukan."
                 )
 
                 continue
 
-            if door["pass_door"] is None:
+            if total_data is None:
 
                 print(
-                    f"[Event Clash] Password door "
-                    f"{pass_id} belum tersedia."
+                    f"[Event Clash] Total score "
+                    f"user {user_id} tidak ditemukan."
                 )
 
                 continue
+
+            monthly_rank = (
+                monthly_scores.index(monthly_data) + 1
+            )
+
+            total_rank = (
+                total_scores.index(total_data) + 1
+            )
+
+            monthly_points = monthly_data["points"]
+            total_points = total_data["total_points"]
 
             try:
 
-                await user.send(
-                    f"**🔐 Door Password**\n\n"
-                    f"World: `{door['world_name']}`\n"
-                    f"Door: `{door['name_door']}`\n"
-                    f"Password: `{door['pass_door']}`"
+                await send_clash_reward(
+                    user=user,
+                    guild_id=guild_id,
+                    pass_id=pass_id,
+                    growid=growid,
+                    monthly_rank=monthly_rank,
+                    monthly_points=monthly_points,
+                    total_rank=total_rank,
+                    total_points=total_points
                 )
 
             except discord.Forbidden:
@@ -247,4 +289,3 @@ class TopClashView(discord.ui.View):
             ),
             view=self
         )
-        
