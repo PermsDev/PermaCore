@@ -145,10 +145,8 @@ async def update_door_password(
 
             await conn.commit()
 
-    return await get_door_password(
-        guild_id=guild_id,
-        pass_id=pass_id
-    )
+    await conn.commit()
+    return True
     
 async def get_door_password_shared_status(
     guild_id: int,
