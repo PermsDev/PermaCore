@@ -1,7 +1,7 @@
 import discord
 
 from views.intro.panel.intro_modal import IntroModal
-from database.core.intro_manager import get_user_profile
+from database.main.user_game_manager import get_user_profile_for_modal
 
 
 class IntroButton(discord.ui.Button):
@@ -22,7 +22,7 @@ class IntroButton(discord.ui.Button):
         guild_id = interaction.guild.id
         user_id = interaction.user.id
 
-        user_data = await get_user_profile(
+        user_data = await get_user_profile_for_modal(
             guild_id,
             user_id
         )
