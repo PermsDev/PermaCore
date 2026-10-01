@@ -1,10 +1,12 @@
 import discord
 
+from database.core.channel_manager import get_channel
 from database.core.emoji_manager import get_emoji
 from database.guild.door_password_manager import (
     get_door_password,
     get_door_password_shared_status
 )
+from utils.discord_timestamp import discord_timestamp
 from utils.delete_scheduler import register_delete
 
 
@@ -37,15 +39,24 @@ async def send_clash_reward(
             f"{pass_id} belum tersedia."
         )
         return False
+    
+    channel_data = await get_channel(
+        guild_id=guild_id,
+        channel_key="clash_channel"
+    )
+
+    if channel_data:
+        clash_channel = f"<#{channel_data['channel_id']}>"
+    else:
+        clash_channel = "channel Event Clash"
 
     embed_info = discord.Embed(
         description=(
             f"## ❄️ Selamat Member {growid} ❄️\n"
-            f"Kamu telah mencapai **Top #{monthly_rank}** "
-            f"dalam Event Clash bulan ini.\n\n"
-            f"Kamu telah memperoleh **{monthly_points} poin**.\n"
-            f"Kamu berada di **peringkat #{total_rank}** "
-            f"dengan total skor **{total_points} poin**."
+            f"Kamu telah mencapai **Top #{monthly_rank}** dalam Event Clash bulan ini.\n"
+            f"Kamu telah memperoleh **{monthly_points} poin**.\n\n"
+            f"Saat ini kamu berada di **peringkat #{total_rank}** dengan total skor **{total_points} poin**.\n\n"
+            f"-# Untuk informasi lebih lanjut, silakan kunjungi channel {clash_channel} "
         )
     )
 
@@ -53,7 +64,9 @@ async def send_clash_reward(
         title="🎁 Hadiah Tambahan",
         description=(
             "Silakan mengambil hadiah tambahan "
-            "di world berikut:"
+            "di world berikut.\n\n"
+            f"⏰ **Batas waktu klaim:** {discord_timestamp('24h', 'R')}\n"
+            f"-# Hadiah hanya dapat diklaim dalam waktu 24 jam setelah pesan ini dikirim."
         )
     )
 
@@ -103,7 +116,7 @@ async def send_clash_reward(
     await register_delete(
         channel_id=message.channel.id,
         message_id=message.id,
-        delete_after="1m"
+        delete_after="36h"
     )
 
     await get_door_password_shared_status(
