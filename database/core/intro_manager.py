@@ -559,6 +559,48 @@ async def get_all_intro():
             ]
 
 
+# =================================================
+# SAVE INTRO MESSAGE ONLY
+# =================================================
+async def save_intro_message(
+    guild_id: int,
+    user_id: int,
+    game_key: str,
+    message_id: int,
+    channel_id: int
+):
+    core_pool = get_core_pool()
+
+    async with core_pool.acquire() as conn:
+        try:
+            async with conn.cursor() as cursor:
+                await cursor.execute("""
+                    INSERT INTO intro_message_db (
+                        guild_id,
+                        user_id,
+                        game_key,
+                        message_id,
+                        channel_id
+                    )
+                    VALUES (%s, %s, %s, %s, %s)
+                    ON DUPLICATE KEY UPDATE
+                        message_id = VALUES(message_id),
+                        channel_id = VALUES(channel_id)
+                """, (
+                    guild_id,
+                    user_id,
+                    game_key,
+                    message_id,
+                    channel_id
+                ))
+
+            await conn.commit()
+
+        except Exception:
+            await conn.rollback()
+            raise
+
+
 # ==================================================
 # COPYVIEW INTROS
 # ==================================================

@@ -15,6 +15,10 @@ from services.bots import (
 )
 
 from services.bots.env_service import can_interact_with_user
+from services.internal_api import (
+    start_internal_api,
+    stop_internal_api,
+)
 from utils.delete_scheduler import delete_checker
 
 from views.feedback import FeedbackButton, ReplyView
@@ -106,6 +110,9 @@ class MyBot(commands.Bot):
         await self.load_extension("listeners.league")
 
         # await register_persistent_views(self)
+        
+        # Tambahkan ini di akhir setup_hook
+        await start_internal_api(self)
 
         # ======================
         # RESTORE VIEWS
@@ -146,6 +153,8 @@ class MyBot(commands.Bot):
         if self.heartbeat:
             await self.heartbeat.close()
             self.heartbeat = None
+            
+        await stop_internal_api()
 
         await close_database()
 
