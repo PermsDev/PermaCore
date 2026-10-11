@@ -245,9 +245,12 @@ async def generate_card(
 
         try:
 
-            dt = datetime.fromisoformat(
-                joined_at
-            )
+            if isinstance(joined_at, datetime):
+                dt = joined_at
+            else:
+                dt = datetime.fromisoformat(
+                    str(joined_at)
+                )
 
             formatted_date = (
                 f"{dt.day} "

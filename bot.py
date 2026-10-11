@@ -111,7 +111,9 @@ class MyBot(commands.Bot):
 
         # await register_persistent_views(self)
         
-        # Tambahkan ini di akhir setup_hook
+        # ======================
+        # INTERNAL API
+        # ====================== 
         await start_internal_api(self)
 
         # ======================
