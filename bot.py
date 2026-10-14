@@ -21,7 +21,6 @@ from services.internal_api import (
 )
 from utils.delete_scheduler import delete_checker
 
-from views.feedback import FeedbackButton, ReplyView
 from views.executive.message.executive_info_view import ExecutiveInfoView
 
 from views.guild.guild_view import GuildManageView, GuildClashView
@@ -36,7 +35,6 @@ from database.database import (
 )
 
 from database.core.emoji_manager import load_emojis
-from database.core.feedback_manager import get_pending_feedbacks
 from database.core.role_manager import (
     get_roles,
     load_roles,
@@ -100,7 +98,6 @@ class MyBot(commands.Bot):
         # PERSISTENT VIEWS
         # ======================
         self.add_view(IntroPanel())
-        self.add_view(FeedbackButton())
 
         self.add_view(ExecutiveInfoView("executive_guild"))
         self.add_view(ExecutiveInfoView("executive_sinyalid"))
@@ -116,16 +113,6 @@ class MyBot(commands.Bot):
         # ====================== 
         await start_internal_api(self)
 
-        # ======================
-        # RESTORE VIEWS
-        # ======================
-        pending_feedbacks = await get_pending_feedbacks()
-
-        for feedback in pending_feedbacks:
-            self.add_view(
-                ReplyView(),
-                message_id=feedback["message_id"]
-            )
             
     # =====================
     # async close

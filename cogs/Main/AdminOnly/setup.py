@@ -3,8 +3,6 @@ from discord import app_commands
 from discord.ext import commands
 
 from commands.setup.setup_intro import setup_intro
-# from commands.setup.setup_league import setup_league
-from commands.setup.feedback import setup_feedback
 from commands.setup.log import setup_log
 from commands.setup.setup_welcome import setup_welcome
 from commands.setup.setup_guild import setup_guildManage
@@ -43,49 +41,9 @@ class Setup(commands.Cog):
         )
 
     # ======================
-    # SETUP LEAGUE
-    # ======================
-    # @setup.command(name="league", description="Set channel league | Admin only")
-    # async def league(
-    #     self,
-    #     interaction: discord.Interaction,
-    #     channel: discord.TextChannel
-    # ):
-
-    #     await setup_league(
-    #         bot=self.bot,
-    #         interaction=interaction,
-    #         channel=channel
-    #     )
-
-    # ======================
-    # SETUP FEEDBACK
-    # ======================
-    @setup.command(
-        name="feedback",
-        description="Setup feedback panel | Admin only"
-    )
-    async def feedback(
-        self,
-        interaction: discord.Interaction,
-        panel_channel: discord.TextChannel,
-        target_channel: discord.TextChannel
-    ):
-
-        await setup_feedback(
-            bot=self.bot,
-            interaction=interaction,
-            panel_channel=panel_channel,
-            target_channel=target_channel
-        )
-
-    # ======================
     # SETUP LOG
     # ======================
-    @setup.command(
-        name="log",
-        description="Setup log channel | Admin only"
-    )
+    @setup.command(name="log", description="Setup log channel | Admin only")
     async def log(
         self,
         interaction: discord.Interaction,
@@ -100,10 +58,7 @@ class Setup(commands.Cog):
     # ======================
     # SETUP WELCOME
     # ======================
-    @setup.command(
-        name="welcome",
-        description="Setup welcome channel | Admin only"
-    )
+    @setup.command(name="welcome", description="Setup welcome channel | Admin only")
     async def welcome(
         self,
         interaction: discord.Interaction,
@@ -118,10 +73,7 @@ class Setup(commands.Cog):
     # ======================
     # SETUP GUILD MANAGEMENT
     # ======================
-    @setup.command(
-        name="guild-manage",
-        description="Setup guild management panel | Admin only"
-    )
+    @setup.command(name="guild-manage", description="Setup guild management panel | Admin only")
     async def guild_manage(
         self,
         interaction: discord.Interaction,
