@@ -20,17 +20,15 @@ from services.card_generator import (
     generate_card,
 )
 
-from services.display_name.update_display_name import (
-    update_display_name,
-)
+from services.display_name.update_display_name import update_display_name
+from config.constants import GAME_BACKGROUNDS
 
 
 logger = logging.getLogger(__name__)
 
 TARGET_GUILD_ID = 1030428036773990400
 GAME_KEY = "growtopia"
-BACKGROUND_NAME = "bg_gt.png"
-
+BACKGROUND_NAME = GAME_BACKGROUNDS[GAME_KEY]
 
 async def update_growid_card(
     member: discord.Member,

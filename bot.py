@@ -15,7 +15,7 @@ from services.bots import (
 )
 
 from services.bots.env_service import can_interact_with_user
-from services.internal_api import (
+from services.api.internal_api import (
     start_internal_api,
     stop_internal_api,
 )

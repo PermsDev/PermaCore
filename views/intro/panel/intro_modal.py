@@ -23,19 +23,7 @@ from database.main.user.display_name_manager import (
 )
 
 from views.intro.copyValue.copy_view import CopyView
-
-
-GAME_BACKGROUNDS = {
-    "growtopia": "bg_gt.png",
-    "mlbb": "bg_mlbb.png",
-    "roblox": "bg_roblox.png",
-}
-
-pretty_names = {
-    "growtopia": "Growtopia",
-    "mlbb": "Mobile Legends",
-    "roblox": "Roblox"
-}
+from config.constants import GAME_BACKGROUNDS, PRETTY_NAMES
 
 # ======================
 # MODAL
@@ -717,7 +705,7 @@ class IntroModal(discord.ui.Modal):
 
             for game in display_source_warnings:
 
-                game_name = pretty_names.get(
+                game_name = PRETTY_NAMES.get(
                     game,
                     game
                 )
@@ -734,7 +722,7 @@ class IntroModal(discord.ui.Modal):
         if successful_games:
 
             success_list = [
-                pretty_names.get(game, game)
+                PRETTY_NAMES.get(game, game)
                 for game in successful_games
             ]
 
@@ -756,7 +744,7 @@ class IntroModal(discord.ui.Modal):
 
             for failed in failed_games:
 
-                game_name = pretty_names.get(
+                game_name = PRETTY_NAMES.get(
                     failed["game"],
                     failed["game"]
                 )
@@ -779,7 +767,7 @@ class IntroModal(discord.ui.Modal):
 
             for warning in input_warnings:
 
-                game_name = pretty_names.get(
+                game_name = PRETTY_NAMES.get(
                     warning["game"],
                     warning["game"]
                 )

@@ -5,7 +5,7 @@ import os
 import discord
 from aiohttp import web
 
-from services.display_name.update_growid_card import (
+from services.api.update_growid_card import (
     update_growid_card,
 )
 
