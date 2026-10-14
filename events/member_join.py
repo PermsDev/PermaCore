@@ -5,8 +5,8 @@ from database.main.user.user_guild_manager import ensure_user_guild_exists
 from database.core.emoji_manager import get_emoji
 from database.core.channel_manager import get_channel
 from services.bots.env_service import can_interact_with_user
+from config.constants import UN_VERIFIED_CHANNEL_KEY
 
-UN_VERIFIED_KEY = "un_verified_channel"
 
 async def handle_member_join(
     member: discord.Member
@@ -32,7 +32,7 @@ async def handle_member_join(
 
         channel_data = await get_channel(
             guild_id,
-            UN_VERIFIED_KEY
+            UN_VERIFIED_CHANNEL_KEY
         )
 
         if channel_data:

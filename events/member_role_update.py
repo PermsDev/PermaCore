@@ -6,7 +6,7 @@ from database.core.guild_message_manager import (
     get_guild_message,
     upsert_guild_message
 )
-from commands.setup.setup_welcome import WELCOME_CHANNEL_KEY
+from config.constants import WELCOME_CHANNEL_KEY
 
 # ========================
 # GAME DISPLAY NAMES

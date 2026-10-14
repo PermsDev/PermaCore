@@ -3,8 +3,8 @@ import discord
 from database.core.channel_manager import (
     set_channel
 )
+from config.constants import WELCOME_CHANNEL_KEY
 
-WELCOME_CHANNEL_KEY = "welcome_channel"
 
 async def setup_welcome(
     interaction: discord.Interaction,

@@ -7,9 +7,7 @@ from database.core.channel_manager import (
 
 from views.guild.guild_manage.guild_panel import create_guild_manage_panel
 from views.guild.guild_view import GuildManageView
-
-
-GUILD_MANAGE_CHANNEL_KEY = "guild_manage_channel"
+from config.constants import GUILD_MANAGE_CHANNEL_KEY
 
 async def setup_guildManage(
     interaction: discord.Interaction,
@@ -30,10 +28,7 @@ async def setup_guildManage(
     # ==================================================
     # AMBIL PANEL LAMA
     # ==================================================
-    old_panel = await get_channel(
-        guild_id,
-        GUILD_MANAGE_CHANNEL_KEY
-    )
+    old_panel = await get_channel(guild_id, GUILD_MANAGE_CHANNEL_KEY)
 
     # ==================================================
     # HAPUS PANEL LAMA

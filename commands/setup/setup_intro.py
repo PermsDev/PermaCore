@@ -7,8 +7,8 @@ from database.core.channel_manager import (
 
 from views.intro.panel.embed import intro_embed
 from views.intro.panel.intro_panel import IntroPanel
+from config.constants import INTRO_CHANNEL_KEY
 
-INTRO_CHANNEL_KEY = "intro_channel"
 
 async def setup_intro(
     bot,

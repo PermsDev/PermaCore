@@ -8,6 +8,7 @@ from database.guild.door_password_manager import (
 )
 from utils.discord_timestamp import discord_timestamp
 from utils.delete_scheduler import register_delete
+from config.constants import CLASH_CHANNEL_KEY
 
 
 async def send_clash_reward(
@@ -42,7 +43,7 @@ async def send_clash_reward(
     
     channel_data = await get_channel(
         guild_id=guild_id,
-        channel_key="clash_channel"
+        channel_key=CLASH_CHANNEL_KEY
     )
 
     if channel_data:

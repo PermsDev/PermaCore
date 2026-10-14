@@ -7,7 +7,7 @@ from discord.ext import commands
 
 from database.core.channel_manager import get_channel, set_channel
 from views.guild.league.embed.panel import create_top_score_panel
-
+from config.constants import CLASH_CHANNEL_KEY
 
 async def sync_league(
     bot,
@@ -17,7 +17,7 @@ async def sync_league(
 
     channel_data = await get_channel(
         guild_id=guild_id,
-        channel_key="clash_channel"
+        channel_key=CLASH_CHANNEL_KEY
     )
 
     if channel_data is None:
@@ -105,7 +105,7 @@ async def sync_league(
 
     await set_channel(
         guild_id=guild_id,
-        channel_key="clash_channel",
+        channel_key=CLASH_CHANNEL_KEY,
         channel_id=channel.id,
         panel_message=new_message_id
     )

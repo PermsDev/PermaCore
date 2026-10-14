@@ -1,8 +1,7 @@
 import discord
 from datetime import datetime
 from database.core.channel_manager import get_channel
-from commands.setup.log import LOG_CHANNEL_KEY
-
+from config.constants import LOG_CHANNEL_KEY
 
 # ======================
 # SEND LOG

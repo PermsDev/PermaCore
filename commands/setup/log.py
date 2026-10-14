@@ -6,8 +6,7 @@ from database.core.channel_manager import (
     set_channel
 )
 
-LOG_CHANNEL_KEY = "log_channel"
-
+from config.constants import LOG_CHANNEL_KEY
 
 async def setup_log(
     interaction: discord.Interaction,
@@ -30,7 +29,7 @@ async def setup_log(
     # =====================================
     await set_channel(
         interaction.guild.id,
-        "LOG_CHANNEL",
+        LOG_CHANNEL_KEY,
         channel.id
     )
 

@@ -4,6 +4,7 @@ import aiohttp
 
 from database.core.channel_manager import get_channel
 from views.guild.league.embed.panel import create_top_score_panel
+from config.constants import CLASH_CHANNEL_KEY
 
 
 async def update_league_panel(
@@ -12,7 +13,7 @@ async def update_league_panel(
 
     channel_data = await get_channel(
         guild_id=guild_id,
-        channel_key="clash_channel"
+        channel_key=CLASH_CHANNEL_KEY
     )
 
     if not channel_data:
