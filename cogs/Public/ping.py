@@ -17,28 +17,14 @@ class Ping(commands.Cog):
         self,
         interaction: discord.Interaction
     ):
+        await interaction.response.defer(ephemeral=True)
 
-        latency = round(
-            self.bot.latency * 1000
-        )
+        latency = round(self.bot.latency * 1000)
 
-        embed = discord.Embed(
-            title="🏓 Pong!",
-            description=f"**Latency:** `{latency} ms`",
-            color=discord.Color.green()
-        )
-
-        embed.set_footer(
-            text="PermaCore"
-        )
-
-        await interaction.response.send_message(
-            embed=embed,
-            ephemeral=True
+        await interaction.edit_original_response(
+            content=f"🏓 **Pong!**\nLatency: `{latency} ms`"
         )
 
 
 async def setup(bot: commands.Bot):
-    await bot.add_cog(
-        Ping(bot)
-    )
+    await bot.add_cog(Ping(bot))

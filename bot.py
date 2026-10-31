@@ -34,7 +34,7 @@ from database.database import (
     close_database,
 )
 
-from database.core.emoji_manager import load_emojis
+from database.core.emoji_manager import reload_emojis
 from database.core.role_manager import (
     get_roles,
     load_roles,
@@ -206,7 +206,7 @@ async def on_ready():
     # ======================
     # LOAD EMOJIS
     # ======================
-    await load_emojis()
+    await reload_emojis()
 
     # ======================
     # PRELOAD ROLE CACHE
