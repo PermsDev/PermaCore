@@ -600,6 +600,45 @@ async def save_intro_message(
             await conn.rollback()
             raise
 
+# ==================================================
+# DELETE USER INTRO MESSAGES
+# ==================================================
+
+async def delete_user_intro_messages(
+    guild_id: int,
+    user_id: int
+):
+    """
+    Menghapus seluruh record intro_message_db
+    milik user pada guild tertentu.
+
+    Tidak menghapus data game_db.
+    """
+
+    core_pool = get_core_pool()
+
+    async with core_pool.acquire() as conn:
+        try:
+            async with conn.cursor() as cursor:
+
+                await cursor.execute("""
+                    DELETE FROM intro_message_db
+                    WHERE guild_id = %s
+                    AND user_id = %s
+                """, (
+                    guild_id,
+                    user_id
+                ))
+
+                deleted = cursor.rowcount
+
+            await conn.commit()
+
+            return deleted
+
+        except Exception:
+            await conn.rollback()
+            raise
 
 # ==================================================
 # COPYVIEW INTROS

@@ -44,13 +44,8 @@ from events.guild.guild_join import handle_guild_join
 from events.guild.guild_remove import handle_guild_remove
 
 from events.member_join import handle_member_join
-from events.member_main_remove import handle_member_main_remove
+from events.handlers.executive_nickname import handle_executive_nickname
 
-from events.handlers.executive_nickname import (
-    handle_executive_nickname
-)
-
-from events.member_remove import handle_member_remove_database
 from events.member_role_update import (
     has_pangkat,
     has_role_group_change,
@@ -93,6 +88,7 @@ class MyBot(commands.Bot):
         # ======================
         await init_database()
         await load_cogs(self)
+        await self.load_extension("events.member_remove")
 
         # ======================
         # PERSISTENT VIEWS
@@ -278,21 +274,6 @@ async def on_member_join(member):
     print(f"[JOIN] {member} joined {member.guild.name}")
 
     await handle_member_join(member)
-
-
-@bot.event
-async def on_member_remove(member):
-
-    if member.bot:
-        return
-    
-    print(f"[LEFT] {member} left {member.guild.name} ({member.guild.id})")
-
-    if await is_main_guild(member.guild.id):
-        await handle_member_main_remove(member)
-
-    await handle_member_remove_database(member)
-
 
 @bot.event
 async def on_member_update(before, after):
