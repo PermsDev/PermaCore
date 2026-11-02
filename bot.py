@@ -88,7 +88,7 @@ class MyBot(commands.Bot):
         # ======================
         await init_database()
         await load_cogs(self)
-        await self.load_extension("events.member_remove")
+        await self.load_extension("events.member.member_remove")
 
         # ======================
         # PERSISTENT VIEWS

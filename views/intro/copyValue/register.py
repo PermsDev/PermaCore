@@ -1,4 +1,4 @@
-from database.core.intro_manager import get_copyview_intros
+from database.core.intro_message_manager import get_copyview_intros
 
 from views.intro.copyValue.copy_view import CopyView
 

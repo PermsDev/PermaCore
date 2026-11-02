@@ -2,23 +2,13 @@ import logging
 
 import discord
 
-from database.core.intro_manager import (
-    get_user_profile,
-    save_intro_message,
-)
+from database.core.intro_manager import get_user_profile
+from database.core.intro_message_manager import save_intro_message
 
-from database.core.channel_manager import (
-    get_channel,
-)
+from database.core.channel_manager import get_channel
+from database.core.role_manager import get_roles
 
-from database.core.role_manager import (
-    get_roles,
-)
-
-from services.card_generator import (
-    get_avatar,
-    generate_card,
-)
+from services.card_generator import get_avatar, generate_card
 
 from services.display_name.update_display_name import update_display_name
 from config.constants import GAME_BACKGROUNDS
