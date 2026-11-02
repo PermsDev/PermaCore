@@ -3,7 +3,8 @@ from database.database import get_main_pool as get_pool
 
 async def ensure_user_guild_exists(
     user_id: int,
-    guild_id: int
+    guild_id: int,
+    joined_at
 ):
     pool = get_pool()
 
@@ -28,12 +29,13 @@ async def ensure_user_guild_exists(
                         guild_id,
                         joined_at
                     )
-                    VALUES (%s, %s, NULL)
+                    VALUES (%s, %s, %s)
                     ON DUPLICATE KEY UPDATE
                         user_id = user_id
                 """, (
                     user_id,
-                    guild_id
+                    guild_id,
+                    joined_at
                 ))
 
             await conn.commit()

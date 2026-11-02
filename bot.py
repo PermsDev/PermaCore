@@ -43,7 +43,6 @@ from database.core.role_manager import (
 from events.guild.guild_join import handle_guild_join
 from events.guild.guild_remove import handle_guild_remove
 
-from events.member_join import handle_member_join
 from events.handlers.executive_nickname import handle_executive_nickname
 
 from events.member_role_update import (
@@ -89,6 +88,7 @@ class MyBot(commands.Bot):
         await init_database()
         await load_cogs(self)
         await self.load_extension("events.member.member_remove")
+        await self.load_extension("events.member.member_join")
 
         # ======================
         # PERSISTENT VIEWS
@@ -265,16 +265,6 @@ async def on_guild_remove(guild):
 # ======================
 # MEMBER EVENTS
 # ======================
-@bot.event
-async def on_member_join(member):
-
-    if member.bot:
-        return
-    
-    print(f"[JOIN] {member} joined {member.guild.name}")
-
-    await handle_member_join(member)
-
 @bot.event
 async def on_member_update(before, after):
 
