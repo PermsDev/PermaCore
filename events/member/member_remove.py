@@ -5,6 +5,7 @@ from discord.ext import commands
 from database.core.emoji_manager import get_emoji
 
 from events.member.handlers.member_remove_intro import handle_member_remove_intro
+from events.member.handlers.member_remove_user_guild import handle_member_remove_user_guild
 from events.member.handlers.member_remove_welcome import handle_member_remove_welcome
 
 from utils.logger import send_log
@@ -40,6 +41,7 @@ class MemberRemove(commands.Cog):
 
         await handle_member_remove_intro(member)
         await handle_member_remove_welcome(member)
+        await handle_member_remove_user_guild(member)
 
         await send_log(
             guild=member.guild,

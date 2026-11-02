@@ -148,6 +148,37 @@ async def sync_users(guild_id: int, members: list):
             await conn.rollback()
             raise
 
+# =================================================
+# DELETE USER GUILD
+# =================================================
+async def delete_user_guild(
+    user_id: int,
+    guild_id: int
+):
+    pool = get_pool()
+
+    async with pool.acquire() as conn:
+        try:
+            async with conn.cursor() as cursor:
+
+                await cursor.execute("""
+                    DELETE FROM user_guild_db
+                    WHERE user_id = %s
+                    AND guild_id = %s
+                """, (
+                    user_id,
+                    guild_id
+                ))
+
+                deleted = cursor.rowcount
+
+            await conn.commit()
+
+            return deleted
+
+        except Exception:
+            await conn.rollback()
+            raise
 
 async def get_all_users(guild_id: int):
     pool = get_pool()
