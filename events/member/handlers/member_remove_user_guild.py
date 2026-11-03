@@ -7,14 +7,9 @@ async def handle_member_remove_user_guild(
     member: discord.Member
 ):
     try:
-        deleted = await delete_user_guild(
+        await delete_user_guild(
             user_id=member.id,
             guild_id=member.guild.id
-        )
-
-        print(
-            f"[MEMBER REMOVE] User Guild {member}: "
-            f"{deleted} record berhasil dihapus."
         )
 
     except Exception as e:

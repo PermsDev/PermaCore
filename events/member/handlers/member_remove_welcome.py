@@ -57,10 +57,6 @@ async def handle_member_remove_welcome(
             "welcome"
         )
 
-        print(
-            f"Welcome DB {member} berhasil dihapus."
-        )
-
     except Exception as e:
 
         print(
