@@ -87,6 +87,10 @@ class MyBot(commands.Bot):
         # ======================
         await init_database()
         await load_cogs(self)
+        
+        # ======================
+        # LOAD MEMBER EVENTS
+        # ======================
         await self.load_extension("events.member.member_remove")
         await self.load_extension("events.member.member_join")
 
