@@ -19,9 +19,11 @@ class RewardTopScoreButton(discord.ui.Button):
         interaction: discord.Interaction
     ):
 
+        await interaction.response.defer(ephemeral=True)
+
         view = await RewardTopScoreView.create()
 
-        await interaction.response.send_message(
+        await interaction.followup.send(
             view=view,
             ephemeral=True
         )
