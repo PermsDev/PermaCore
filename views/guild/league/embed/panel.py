@@ -5,12 +5,17 @@ from datetime import date
 
 from database.guild.event_clash_series_manager import get_all_series
 from database.guild.event_clash_score_manager import (
-    get_top_total_score,
-    get_top_monthly_score
+    get_top_total_score, 
+    get_top_monthly_score, 
 )
 
 from views.guild.league.embed.top_score import create_top_score_components
 
+from views.guild.league.buttons import (
+    ClashGuideButton, 
+    ClashInformationButton, 
+    PrizeTopScoreButton
+)
 
 async def create_top_score_panel(
     series_id: int | None = None
@@ -129,4 +134,12 @@ async def create_top_score_panel(
             discord.ui.ActionRow(select)
         )
 
+    view.add_item(
+        discord.ui.ActionRow(
+            ClashInformationButton(),
+            PrizeTopScoreButton(),
+            ClashGuideButton()
+        )
+    )
+    
     return view

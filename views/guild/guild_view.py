@@ -1,7 +1,7 @@
 import discord
 
 from views.guild.guild_manage.buttons import TopClashButton, ChangePasswordButton
-from views.guild.league.buttons import MoreTotalScoreButton, MoreMonthlyScoreButton
+from views.guild.league.buttons import MoreTotalScoreButton, MoreMonthlyScoreButton, ClashGuideButton, ClashInformationButton, PrizeTopScoreButton
 
 
 class GuildManageView(discord.ui.View):
@@ -21,9 +21,10 @@ class GuildClashView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-        self.add_item(
-            MoreTotalScoreButton()
-        )
-        self.add_item(
-            MoreMonthlyScoreButton()
-        )
+        self.add_item(MoreTotalScoreButton())
+        self.add_item(MoreMonthlyScoreButton())
+        
+        self.add_item(ClashInformationButton())
+        self.add_item(PrizeTopScoreButton())
+        self.add_item(ClashGuideButton())
+    
