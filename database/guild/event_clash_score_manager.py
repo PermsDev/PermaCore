@@ -236,8 +236,6 @@ async def get_top_monthly_score(
 
         async with conn.cursor() as cursor:
 
-            today = date.today()
-
             await cursor.execute(
                 """
                 SELECT
@@ -249,21 +247,22 @@ async def get_top_monthly_score(
                 FROM event_clash ec
                 INNER JOIN event_clash_series ecs
                     ON ecs.series_id = ec.series_id
-                WHERE ec.clash_month = %s
-                    AND ec.clash_year = %s
-                    AND ec.series_id = %s
-                    AND ecs.start_date <= %s
-                    AND ecs.end_date >= %s
+                WHERE ec.series_id = %s
+                    AND ecs.start_date <= CURDATE()
+                    AND ecs.end_date >= CURDATE()
+                    AND EXISTS (
+                        SELECT 1
+                        FROM event_clash_result ecr
+                        WHERE ecr.clash_id = ec.clash_id
+                    )
                 ORDER BY
+                    ec.clash_year DESC,
+                    ec.clash_month DESC,
                     ec.clash_id DESC
                 LIMIT 1
                 """,
                 (
-                    today.month,
-                    today.year,
                     series_id,
-                    today,
-                    today,
                 )
             )
 
@@ -272,7 +271,7 @@ async def get_top_monthly_score(
             if clash is None:
                 print(
                     f"[Event Clash] Monthly Score: "
-                    f"Tidak ada clash bulan ini di Series {series_id}."
+                    f"Tidak ada data clash di Series {series_id}."
                 )
                 return []
 
@@ -323,4 +322,3 @@ async def get_top_monthly_score(
             ]
 
             return result
-        
