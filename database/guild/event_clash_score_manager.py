@@ -289,8 +289,12 @@ async def get_top_monthly_score(
                         ecr.growid
                     ) AS growid,
                     ecr.rank_position,
-                    ecp.points
+                    ecp.points,
+                    ec.clash_month,
+                    ec.clash_year
                 FROM event_clash_result ecr
+                INNER JOIN event_clash ec
+                    ON ec.clash_id = ecr.clash_id
                 INNER JOIN event_clash_point ecp
                     ON ecp.rank_position = ecr.rank_position
                 LEFT JOIN perma_main.game_db gdb
@@ -313,6 +317,8 @@ async def get_top_monthly_score(
                     "growid": row[1],
                     "rank_position": row[2],
                     "points": row[3],
+                    "clash_month": row[4],
+                    "clash_year": row[5],
                     "series_id": series_id,
                     "series_name": series_name,
                     "start_date": start_date,

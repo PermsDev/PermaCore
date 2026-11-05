@@ -113,11 +113,20 @@ def create_top_score_components(
             monthly_lines.append(
                 f"{icon} `{growid}` — **{points} Point**"
             )
+            
+        clash_month = monthly_scores[0]["clash_month"]
+        clash_year = monthly_scores[0]["clash_year"]
+
+        month_name = date(
+            clash_year,
+            clash_month,
+            1
+        ).strftime("%B %Y")
 
         components.append(
             discord.ui.Section(
                 discord.ui.TextDisplay(
-                    content="### 📅 Top 5 Score Bulan Ini"
+                    content=f"### 📅 Top 5 Score {month_name}"
                 ),
                 accessory=MoreMonthlyScoreButton()
             )
