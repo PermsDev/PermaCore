@@ -1,12 +1,16 @@
+
+import discord
+
 from datetime import date
 
 from database.core.emoji_manager import get_emoji
 
+from views.guild.league.buttons import MoreTotalScoreButton, MoreMonthlyScoreButton
 
 def create_top_score_components(
     total_scores: list[dict],
     monthly_scores: list[dict]
-) -> list[dict]:
+) -> discord.ui.Container:
 
     medal_emojis = {
         1: get_emoji("medal_1"),
@@ -27,20 +31,18 @@ def create_top_score_components(
     rank_emoji = get_emoji("rank")
 
     components = [
-        {
-            "type": 10,
-            "content": (
+        discord.ui.TextDisplay(
+            content=(
                 f"# {rank_emoji} Perma Clash\n"
                 "Perma Clash adalah sistem kompetisi komunitas untuk "
                 "mencatat hasil, poin, peringkat, dan perkembangan pemain "
                 "dalam setiap series."
             )
-        },
-        {
-            "type": 14,
-            "divider": True,
-            "spacing": 2
-        }
+        ),
+        discord.ui.Separator(
+            visible=True,
+            spacing=discord.SeparatorSpacing.large
+        )
     ]
 
     total_limit = 5 if monthly_scores else 10
@@ -72,40 +74,27 @@ def create_top_score_components(
         )
 
     components.append(
-        {
-            "type": 9,
-            "components": [
-                {
-                    "type": 10,
-                    "content": (
-                        f"### 🏆 Top {total_limit} Total Score"
-                    )
-                }
-            ],
-            "accessory": {
-                "type": 2,
-                "style": 2,
-                "label": "More",
-                "custom_id": "league_more_total_score"
-            }
-        }
+        discord.ui.Section(
+            discord.ui.TextDisplay(
+                content=f"### 🏆 Top {total_limit} Total Score"
+            ),
+            accessory=MoreTotalScoreButton()
+        )
     )
 
     components.append(
-        {
-            "type": 10,
-            "content": "\n".join(total_lines)
-        }
+        discord.ui.TextDisplay(
+            content="\n".join(total_lines)
+        )
     )
 
     if monthly_scores:
 
         components.append(
-            {
-                "type": 14,
-                "divider": True,
-                "spacing": 2
-            }
+            discord.ui.Separator(
+                visible=True,
+                spacing=discord.SeparatorSpacing.large
+            )
         )
 
         monthly_lines = []
@@ -126,28 +115,18 @@ def create_top_score_components(
             )
 
         components.append(
-            {
-                "type": 9,
-                "components": [
-                    {
-                        "type": 10,
-                        "content": "### 📅 Top 5 Score Bulan Ini"
-                    }
-                ],
-                "accessory": {
-                    "type": 2,
-                    "style": 2,
-                    "label": "More",
-                    "custom_id": "league_more_monthly_score"
-                }
-            }
+            discord.ui.Section(
+                discord.ui.TextDisplay(
+                    content="### 📅 Top 5 Score Bulan Ini"
+                ),
+                accessory=MoreMonthlyScoreButton()
+            )
         )
 
         components.append(
-            {
-                "type": 10,
-                "content": "\n".join(monthly_lines)
-            }
+            discord.ui.TextDisplay(
+                content="\n".join(monthly_lines)
+            )
         )
 
     if total_scores:
@@ -168,19 +147,21 @@ def create_top_score_components(
 
         components.extend(
             [
-                {
-                    "type": 14,
-                    "divider": True,
-                    "spacing": 2
-                },
-                {
-                    "type": 10,
-                    "content": (
+                discord.ui.Separator(
+                    visible=True,
+                    spacing=discord.SeparatorSpacing.large
+                ),
+                discord.ui.TextDisplay(
+                    content=(
                         f"-# 🏆 {series_name} · "
                         f"{start_date.year} ~ {end_date.year}"
                     )
-                }
+                )
             ]
         )
 
-    return components
+    return discord.ui.Container(
+        *components,
+        accent_colour=15844367 if total_scores else None,
+        spoiler=False
+    )

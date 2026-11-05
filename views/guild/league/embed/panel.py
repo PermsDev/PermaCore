@@ -1,3 +1,6 @@
+
+import discord
+
 from datetime import date
 
 from database.guild.event_clash_series_manager import get_all_series
@@ -5,27 +8,30 @@ from database.guild.event_clash_score_manager import (
     get_top_total_score,
     get_top_monthly_score
 )
-from views.guild.league.embed.top_score import (
-    create_top_score_components
-)
+
+from views.guild.league.embed.top_score import create_top_score_components
 
 
 async def create_top_score_panel(
     series_id: int | None = None
-) -> list[dict]:
+) -> discord.ui.LayoutView:
 
     series_list = await get_all_series()
 
+    view = discord.ui.LayoutView(
+        timeout=None
+    )
+
     if not series_list:
-        return [
-            {
-                "type": 17,
-                "components": create_top_score_components(
-                    [],
-                    []
-                )
-            }
-        ]
+
+        view.add_item(
+            create_top_score_components(
+                [],
+                []
+            )
+        )
+
+        return view
 
     if series_id is None:
 
@@ -53,15 +59,15 @@ async def create_top_score_panel(
     )
 
     if selected_series is None:
-        return [
-            {
-                "type": 17,
-                "components": create_top_score_components(
-                    [],
-                    []
-                )
-            }
-        ]
+
+        view.add_item(
+            create_top_score_components(
+                [],
+                []
+            )
+        )
+
+        return view
 
     total_scores = await get_top_total_score(
         series_id
@@ -70,13 +76,16 @@ async def create_top_score_panel(
     monthly_scores = []
 
     if selected_series["status"] == "active":
+
         monthly_scores = await get_top_monthly_score(
             series_id
         )
 
-    panel_components = create_top_score_components(
-        total_scores,
-        monthly_scores
+    view.add_item(
+        create_top_score_components(
+            total_scores,
+            monthly_scores
+        )
     )
 
     series_options = []
@@ -97,40 +106,27 @@ async def create_top_score_panel(
             )
 
         series_options.append(
-            {
-                "label": series["series_name"][:100],
-                "value": str(series["series_id"]),
-                "description": (
+            discord.SelectOption(
+                label=series["series_name"][:100],
+                value=str(series["series_id"]),
+                description=(
                     f"{start_date.year} - {end_date.year}"
                 )[:100]
-            }
+            )
         )
-
-    components = [
-        {
-            "type": 17,
-            "accent_color": 15844367,
-            "spoiler": False,
-            "components": panel_components
-        }
-    ]
 
     if series_options:
 
-        components.append(
-            {
-                "type": 1,
-                "components": [
-                    {
-                        "type": 3,
-                        "custom_id": "league_select_series",
-                        "placeholder": "Pilih Series",
-                        "min_values": 1,
-                        "max_values": 1,
-                        "options": series_options
-                    }
-                ]
-            }
+        select = discord.ui.Select(
+            custom_id="league_select_series",
+            placeholder="Pilih Series",
+            min_values=1,
+            max_values=1,
+            options=series_options
         )
 
-    return components
+        view.add_item(
+            discord.ui.ActionRow(select)
+        )
+
+    return view

@@ -1,6 +1,4 @@
-import os
 
-import aiohttp
 import discord
 
 from discord.ext import commands
@@ -9,10 +7,12 @@ from database.core.channel_manager import get_channel, set_channel
 from views.guild.league.embed.panel import create_top_score_panel
 from config.constants import CLASH_CHANNEL_KEY
 
+
 async def sync_league(
     bot,
     ctx: commands.Context
 ):
+
     guild_id = ctx.guild.id
 
     channel_data = await get_channel(
@@ -32,6 +32,7 @@ async def sync_league(
     channel = bot.get_channel(channel_id)
 
     if channel is None:
+
         try:
             channel = await bot.fetch_channel(channel_id)
 
@@ -47,7 +48,14 @@ async def sync_league(
             )
             return
 
+    if not isinstance(channel, discord.TextChannel):
+        await ctx.send(
+            "Channel League bukan Text Channel."
+        )
+        return
+
     if old_message_id:
+
         try:
             old_message = await channel.fetch_message(
                 int(old_message_id)
@@ -64,50 +72,26 @@ async def sync_league(
             )
             return
 
-    components = await create_top_score_panel()
+    try:
 
-    token = os.getenv("TOKEN")
+        components = await create_top_score_panel()
 
-    url = (
-        f"https://discord.com/api/v10/"
-        f"channels/{channel.id}/messages"
-    )
+        new_message = await channel.send(
+            view=components
+        )
 
-    headers = {
-        "Authorization": f"Bot {token}",
-        "Content-Type": "application/json"
-    }
+    except discord.HTTPException as e:
 
-    payload = {
-        "flags": 32768,
-        "components": components
-    }
-
-    async with aiohttp.ClientSession() as session:
-
-        async with session.post(
-            url,
-            headers=headers,
-            json=payload
-        ) as response:
-
-            if response.status not in (200, 201):
-                error = await response.text()
-
-                await ctx.send(
-                    f"Gagal membuat panel:\n```{error}```"
-                )
-                return
-
-            data = await response.json()
-
-    new_message_id = int(data["id"])
+        await ctx.send(
+            f"Gagal membuat panel League:\n```{e}```"
+        )
+        return
 
     await set_channel(
         guild_id=guild_id,
         channel_key=CLASH_CHANNEL_KEY,
         channel_id=channel.id,
-        panel_message=new_message_id
+        panel_message=new_message.id
     )
 
     message = await ctx.send(

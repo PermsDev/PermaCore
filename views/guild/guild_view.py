@@ -1,13 +1,7 @@
 import discord
 
-from views.guild.guild_manage.buttons import (
-    TopClashButton, 
-    ChangePasswordButton
-)
-from views.guild.league.buttons import (
-    MoreTotalScoreButton,
-    MoreMonthlyScoreButton
-)
+from views.guild.guild_manage.buttons import TopClashButton, ChangePasswordButton
+from views.guild.league.buttons import MoreTotalScoreButton, MoreMonthlyScoreButton
 
 
 class GuildManageView(discord.ui.View):

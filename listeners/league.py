@@ -1,7 +1,6 @@
-import os
 
-import aiohttp
 import discord
+
 from discord.ext import commands
 
 from views.guild.league.embed.panel import create_top_score_panel
@@ -17,6 +16,7 @@ class LeagueListener(commands.Cog):
         self,
         interaction: discord.Interaction
     ):
+
         if interaction.type != discord.InteractionType.component:
             return
 
@@ -37,7 +37,9 @@ class LeagueListener(commands.Cog):
 
         try:
             series_id = int(values[0])
+
         except (ValueError, TypeError):
+
             await interaction.response.send_message(
                 "Series tidak valid.",
                 ephemeral=True
@@ -45,44 +47,19 @@ class LeagueListener(commands.Cog):
             return
 
         try:
+
             await interaction.response.defer()
 
             components = await create_top_score_panel(
                 series_id=series_id
             )
 
-            token = os.getenv("TOKEN")
-
-            url = (
-                f"https://discord.com/api/v10/"
-                f"channels/{interaction.channel_id}/"
-                f"messages/{interaction.message.id}"
+            await interaction.edit_original_response(
+                view=components
             )
 
-            headers = {
-                "Authorization": f"Bot {token}",
-                "Content-Type": "application/json"
-            }
-
-            payload = {
-                "components": components,
-                "flags": 32768
-            }
-
-            async with aiohttp.ClientSession() as session:
-                async with session.patch(
-                    url,
-                    headers=headers,
-                    json=payload
-                ) as response:
-
-                    if response.status >= 400:
-                        error = await response.text()
-                        raise RuntimeError(
-                            f"Discord API {response.status}: {error}"
-                        )
-
         except Exception as e:
+
             import traceback
 
             print(
@@ -92,6 +69,7 @@ class LeagueListener(commands.Cog):
             traceback.print_exc()
 
             if not interaction.response.is_done():
+
                 await interaction.response.send_message(
                     "Gagal memuat data series.",
                     ephemeral=True
@@ -99,6 +77,7 @@ class LeagueListener(commands.Cog):
 
 
 async def setup(bot):
+
     await bot.add_cog(
         LeagueListener(bot)
     )
