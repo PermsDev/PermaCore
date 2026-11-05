@@ -8,7 +8,7 @@ from database.guild.event_clash_reward_manager import (
 from database.guild.event_clash_point_manager import get_clash_point
 
 
-class RewardTopScoreView(discord.ui.LayoutView):
+class ClashRewardView(discord.ui.LayoutView):
 
     def __init__(
         self,
@@ -18,10 +18,26 @@ class RewardTopScoreView(discord.ui.LayoutView):
     ):
         super().__init__(timeout=None)
 
+        medal_emojis = {
+            1: get_emoji("medal_1"),
+            2: get_emoji("medal_2"),
+            3: get_emoji("medal_3"),
+            4: get_emoji("medal_4"),
+            5: get_emoji("medal_5")
+        }
+
+        rank_emojis = {
+            1: get_emoji("rank_1"),
+            2: get_emoji("rank_2"),
+            3: get_emoji("rank_3"),
+            4: get_emoji("rank_4"),
+            5: get_emoji("rank_5")
+        }
+
         components = [
             discord.ui.TextDisplay(
                 content=(
-                    f"## {get_emoji('GoldGuildChest')} Reward Top Score"
+                    f"## {get_emoji('GoldGuildChest')} Clash Reward"
                 )
             ),
             discord.ui.Separator(),
@@ -42,9 +58,15 @@ class RewardTopScoreView(discord.ui.LayoutView):
             )
 
             if reward is None:
-                reward = f"-# {get_emoji('BlueArrow')} Reward not yet determined."
+                reward = (
+                    f"-# {get_emoji('BlueArrow')} "
+                    "Reward not yet determined."
+                )
             else:
-                reward = f"{get_emoji('BlueArrow')} {format_clash_reward(reward)}"
+                reward = (
+                    f"{get_emoji('BlueArrow')} "
+                    f"{format_clash_reward(reward)}"
+                )
 
             if rank == 1:
                 reward += " + **Guild Co-Leader**"
@@ -52,7 +74,7 @@ class RewardTopScoreView(discord.ui.LayoutView):
             components.append(
                 discord.ui.TextDisplay(
                     content=(
-                        f"**Rank {rank}**\n"
+                        f"**{medal_emojis[rank]} Rank {rank}**\n"
                         f"{reward}"
                     )
                 )
@@ -84,6 +106,7 @@ class RewardTopScoreView(discord.ui.LayoutView):
                 ),
                 0
             )
+
             reward = format_clash_reward(reward)
 
             score_text = f"{score} Points"
@@ -94,7 +117,7 @@ class RewardTopScoreView(discord.ui.LayoutView):
             components.append(
                 discord.ui.TextDisplay(
                     content=(
-                        f"**Rank {rank}** » {reward}\n"
+                        f"**{rank_emojis[rank]} Rank {rank}** » {reward}\n"
                         f"{get_emoji('RedArrow')} {score_text}"
                     )
                 )
@@ -117,6 +140,7 @@ class RewardTopScoreView(discord.ui.LayoutView):
         monthly_points = []
 
         for rank in range(1, 6):
+
             score = await get_clash_point(rank)
 
             monthly_points.append({

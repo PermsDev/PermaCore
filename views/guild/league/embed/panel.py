@@ -14,7 +14,7 @@ from views.guild.league.embed.top_score import create_top_score_components
 from views.guild.league.buttons import (
     ClashGuideButton, 
     ClashInformationButton, 
-    RewardTopScoreButton
+    ClashRewardButton
 )
 
 async def create_top_score_panel(
@@ -137,7 +137,7 @@ async def create_top_score_panel(
     view.add_item(
         discord.ui.ActionRow(
             ClashInformationButton(),
-            RewardTopScoreButton(),
+            ClashRewardButton(),
             ClashGuideButton()
         )
     )

@@ -2,24 +2,24 @@ import discord
 import logging
 
 from database.core.emoji_manager import get_emoji
-from views.guild.league.reward.reward_view import RewardTopScoreView
+from views.guild.league.reward.reward_view import ClashRewardView
 
 logger = logging.getLogger(__name__)
 
 
-class RewardTopScoreButton(discord.ui.Button):
+class ClashRewardButton(discord.ui.Button):
 
     def __init__(self):
         super().__init__(
-            label="Reward Top Score",
+            label="Clash Reward",
             emoji=get_emoji("GoldGuildChest"),
             style=discord.ButtonStyle.secondary,
-            custom_id="league:reward_top_score"
+            custom_id="league:clash_reward"
         )
 
     async def callback(self, interaction: discord.Interaction):
 
-        logger.info("[Reward Top Score] Interaction received")
+        logger.info("[Clash Reward] Interaction received")
 
         try:
             await interaction.response.defer(
@@ -27,18 +27,18 @@ class RewardTopScoreButton(discord.ui.Button):
                 thinking=True
             )
 
-            logger.info("[Reward Top Score] Interaction deferred")
+            logger.info("[Clash Reward] Interaction deferred")
 
-            view = await RewardTopScoreView.create()
+            view = await ClashRewardView.create()
 
-            logger.info("[Reward Top Score] View created")
+            logger.info("[Clash Reward] View created")
 
             await interaction.followup.send(
                 view=view,
                 ephemeral=True
             )
 
-            logger.info("[Reward Top Score] Response sent")
+            logger.info("[Clash Reward] Response sent")
 
         except Exception:
-            logger.exception("[Reward Top Score] Failed")
+            logger.exception("[Clash Reward] Failed")
