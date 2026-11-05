@@ -14,9 +14,14 @@ class RewardTopScoreButton(discord.ui.Button):
             custom_id="league:reward_top_score"
         )
 
-    async def callback(self, interaction: discord.Interaction):
+    async def callback(
+        self,
+        interaction: discord.Interaction
+    ):
+
+        view = await RewardTopScoreView.create()
 
         await interaction.response.send_message(
-            view=RewardTopScoreView(),
+            view=view,
             ephemeral=True
         )

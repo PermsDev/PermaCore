@@ -328,3 +328,4 @@ async def get_top_monthly_score(
             ]
 
             return result
+        
