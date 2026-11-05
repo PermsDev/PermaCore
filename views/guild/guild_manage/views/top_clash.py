@@ -83,7 +83,7 @@ class TopClashView(discord.ui.View):
         lines.extend([
             "",
             "Silakan periksa data sebelum disimpan. \n"
-            f"{get_emoji('weak_password')} → Password belum di perbarui, prize tidak akan di berikan"
+            f"{get_emoji('weak_password')} → Password belum di perbarui, reward tidak akan di berikan"
         ])
 
         return "\n".join(lines)
