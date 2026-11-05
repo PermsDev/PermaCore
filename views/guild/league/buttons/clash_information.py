@@ -1,5 +1,7 @@
 import discord
 
+from database.core.emoji_manager import get_emoji
+
 
 class ClashInformationButton( 
     discord.ui.Button
@@ -9,6 +11,7 @@ class ClashInformationButton(
 
         super().__init__(
             label="Clash Information",
+            emoji=get_emoji("ScrollBulletin"),
             style=discord.ButtonStyle.secondary,
             custom_id="league:clash_information"
         )

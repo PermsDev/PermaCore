@@ -1,5 +1,7 @@
 import discord
 
+from database.core.emoji_manager import get_emoji
+
 
 class ClashGuideButton(
     discord.ui.Button
@@ -9,6 +11,7 @@ class ClashGuideButton(
 
         super().__init__(
             label="Clash Guide",
+            emoji=get_emoji("guide"),
             style=discord.ButtonStyle.secondary,
             custom_id="league:clash_guide"
         )

@@ -45,7 +45,6 @@ async def load_emojis():
 # ==================================================
 
 async def reload_emojis():
-
     await load_emojis()
 
 
@@ -113,24 +112,52 @@ async def set_emoji(
 
         try:
 
-            async with conn.cursor() as cursor:
+            async with conn.cursor(DictCursor) as cursor:
 
                 await cursor.execute("""
-                    INSERT INTO emoji_db (
+                    SELECT emoji_key
+                    FROM emoji_db
+                    WHERE LOWER(emoji_key) = LOWER(%s)
+                    LIMIT 1
+                    FOR UPDATE
+                """, (
+                    emoji_key,
+                ))
+
+                existing = await cursor.fetchone()
+
+                if existing:
+
+                    old_key = existing["emoji_key"]
+
+                    await cursor.execute("""
+                        UPDATE emoji_db
+                        SET
+                            emoji_key = %s,
+                            emoji_id = %s,
+                            animated = %s
+                        WHERE emoji_key = %s
+                    """, (
+                        emoji_key,
+                        emoji_id,
+                        animated,
+                        old_key
+                    ))
+
+                else:
+
+                    await cursor.execute("""
+                        INSERT INTO emoji_db (
+                            emoji_key,
+                            emoji_id,
+                            animated
+                        )
+                        VALUES (%s, %s, %s)
+                    """, (
                         emoji_key,
                         emoji_id,
                         animated
-                    )
-                    VALUES (%s, %s, %s) 
-
-                    ON DUPLICATE KEY UPDATE
-                        emoji_id = VALUES(emoji_id),
-                        animated = VALUES(animated)
-                """, (
-                    emoji_key,
-                    emoji_id,
-                    animated
-                ))
+                    ))
 
             await conn.commit()
 
@@ -139,11 +166,13 @@ async def set_emoji(
             await conn.rollback()
             raise
 
+    if existing:
+        EMOJIS.pop(old_key, None)
+
     EMOJIS[emoji_key] = {
         "emoji_id": emoji_id,
         "animated": animated
     }
-
 
 # ==================================================
 # HAPUS EMOJI

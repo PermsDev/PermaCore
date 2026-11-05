@@ -1,5 +1,7 @@
 import discord
 
+from database.core.emoji_manager import get_emoji
+
 
 class PrizeTopScoreButton(
     discord.ui.Button
@@ -9,6 +11,7 @@ class PrizeTopScoreButton(
 
         super().__init__(
             label="Prize Top Score",
+            emoji=get_emoji("GoldGuildChest"),
             style=discord.ButtonStyle.secondary,
             custom_id="league:prize_top_score"
         )
