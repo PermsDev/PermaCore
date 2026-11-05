@@ -151,6 +151,7 @@ class TopClashView(discord.ui.View):
             )
 
             await update_league_panel(
+                bot=interaction.client,
                 guild_id=guild_id
             )
 

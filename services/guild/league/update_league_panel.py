@@ -1,6 +1,4 @@
-import os
-
-import aiohttp
+import discord
 
 from database.core.channel_manager import get_channel
 from views.guild.league.embed.panel import create_top_score_panel
@@ -8,6 +6,7 @@ from config.constants import CLASH_CHANNEL_KEY
 
 
 async def update_league_panel(
+    bot: discord.Client,
     guild_id: int
 ) -> bool:
 
@@ -25,40 +24,35 @@ async def update_league_panel(
     if not channel_id or not message_id:
         return False
 
-    token = os.getenv("TOKEN")
+    try:
+        channel = bot.get_channel(int(channel_id))
 
-    if not token:
+        if channel is None:
+            channel = await bot.fetch_channel(int(channel_id))
+
+        if not isinstance(channel, discord.TextChannel):
+            return False
+
+        message = await channel.fetch_message(
+            int(message_id)
+        )
+
+        components = await create_top_score_panel()
+
+        await message.edit(view=components)
+
+        return True
+
+    except discord.NotFound:
         return False
 
-    components = await create_top_score_panel()
+    except discord.Forbidden:
+        print(
+            f"[League] Tidak memiliki izin memperbarui panel "
+            f"di channel {channel_id}."
+        )
+        return False
 
-    url = (
-        f"https://discord.com/api/v10/channels/"
-        f"{channel_id}/messages/{message_id}"
-    )
-
-    headers = {
-        "Authorization": f"Bot {token}",
-        "Content-Type": "application/json"
-    }
-
-    payload = {
-        "components": components,
-        "flags": 32768
-    }
-
-    async with aiohttp.ClientSession() as session:
-
-        async with session.patch(
-            url,
-            headers=headers,
-            json=payload
-        ) as response:
-
-            if response.status == 200:
-                return True
-
-            if response.status == 404:
-                return False
-
-            return False
+    except discord.HTTPException as e:
+        print(f"[League] Gagal memperbarui panel: {e}")
+        return False
